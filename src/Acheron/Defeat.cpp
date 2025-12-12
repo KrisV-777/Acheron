@@ -1,8 +1,8 @@
 #include "Acheron/Defeat.h"
 
 #include "Acheron/EventSink.h"
-#include "Script.h"
 #include "Serialization/EventManager.h"
+#include "Util/Script.h"
 
 namespace Acheron
 {
