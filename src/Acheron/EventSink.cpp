@@ -131,7 +131,7 @@ namespace Acheron
 			return EventResult::kContinue;
 
 		const auto controlMap = RE::ControlMap::GetSingleton();
-		if (!Acheron::IsMovementControlsEnabled(controlMap))
+		if (!controlMap->IsMovementControlsEnabled())
 			return EventResult::kContinue;
 
 		const auto getKey = [&](int key) {
