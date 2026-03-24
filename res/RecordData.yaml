@@ -7,7 +7,8 @@ ModHeader:
   Flags:
   - Master
   - Small
-  Author: Scrab Joséline
+  Author: KrisV777
+  Description: A SKSE driven/native Death Alternative Framework, to create custom game over scenarios next to the vanilla "reload save" one.
   MasterReferences:
   - Master: Skyrim.esm
     FileSize: 0
