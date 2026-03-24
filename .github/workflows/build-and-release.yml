@@ -34,6 +34,7 @@ jobs:
           }
 
           $projectVersion = $match.Groups[1].Value
+          write-host "Resolved project version: $projectVersion"
           "project_version=$projectVersion" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
 
   compile-papyrus:
@@ -75,7 +76,21 @@ jobs:
             exit 1
           }
 
-      - name: Checkout Papyrus Sources
+      - name: Checkout TESVScripts Sources
+        if: steps.cache-ss.outputs.cache-hit != 'true'
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Path .github/Papyrus/Base -Force | Out-Null
+          Push-Location .github/Papyrus/Base
+          git init
+          git remote add origin https://github.com/digital-apple/TESVScripts.git
+          git sparse-checkout set --no-cone Base
+          git fetch --depth=1 origin main
+          git checkout main
+          Remove-Item .git -Recurse -Force
+          Pop-Location
+
+      - name: Checkout Other Papyrus Sources
         if: steps.cache-ss.outputs.cache-hit != 'true'
         run: |
           mkdir .github/Papyrus
@@ -111,7 +126,7 @@ jobs:
 
       - name: Run Caprica
         shell: pwsh
-        run: .github/Caprica/Caprica.exe --game skyrim --import ".github/Papyrus/SRC;.github/Papyrus/SRC_SKYUI;" --output "dist/Scripts" --flags=".github/Papyrus/SRC/TESV_Papyrus_Flags.flg" "${{ github.workspace }}/dist/Source/Scripts" -R -q
+        run: .github/Caprica/Caprica.exe --game skyrim --import ".github/Papyrus/Base;.github/Papyrus/SRC;.github/Papyrus/SRC_SKYUI;" --output "dist/Scripts" --flags=".github/Papyrus/SRC/TESV_Papyrus_Flags.flg" "${{ github.workspace }}/dist/Source/Scripts" -R -q
 
       - name: Upload Compiled Scripts
         uses: actions/upload-artifact@v4
