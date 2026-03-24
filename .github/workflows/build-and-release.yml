@@ -12,13 +12,6 @@ concurrency:
   group: ci-release-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-permissions:
-  contents: write
-
-env:
-  CAPRICA_VERSION: v0.3.0
-  CAPRICA_REPO: KrisV-777/Caprica
-
 jobs:
   project-version:
     name: Resolve Project Version
@@ -44,125 +37,119 @@ jobs:
           "project_version=$projectVersion" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
 
   compile-papyrus:
-    name: Compile Papyrus (.psc -> .pex)
+    name: Compile Papyrus scripts
     needs: project-version
     runs-on: windows-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          submodules: recursive
 
-      - name: Setup xmake
-        uses: xmake-io/github-action-setup-xmake@v1
+      - name: Cache Script Sources
+        id: cache-ss
+        uses: actions/cache@v4
         with:
-          xmake-version: branch@master
+          path: |
+            .github/Papyrus/SRC
+            .github/Papyrus/SRC_SKYUI
+            .github/Papyrus/SRC/TESV_Papyrus_Flags.flg
+          key: script-sources-clean
 
-      - name: Cache Caprica
-        id: cache-caprica
+      - name: Cache Compiler
+        id: cache-com
         uses: actions/cache@v4
         with:
           path: .github/Caprica
-          key: ${{ runner.os }}-caprica-${{ env.CAPRICA_VERSION }}
+          key: ${{ runner.os }}-papyrus-compiler
 
       - name: Fetch Caprica
-        if: steps.cache-caprica.outputs.cache-hit != 'true'
-        shell: pwsh
+        if: steps.cache-com.outputs.cache-hit != 'true'
         env:
-          GH_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ github.token }}
         run: |
-          $ErrorActionPreference = 'Stop'
-          New-Item -ItemType Directory -Path .github -Force | Out-Null
+          gh release download -O .github/Caprica.7z -p '*.7z' -R KrisV-777/Caprica v0.3.0a
+          7z x .github/Caprica.7z "-o.github\Caprica"
 
-          gh release download $env:CAPRICA_VERSION -R $env:CAPRICA_REPO --pattern "*.7z" --dir .github --clobber
-
-          $capricaArchive = Get-ChildItem -Path .github -Filter *.7z | Select-Object -First 1
-          if (-not $capricaArchive) {
-            throw 'Caprica archive (*.7z) not found after download.'
+      - name: Checkout Papyrus Sources
+        if: steps.cache-ss.outputs.cache-hit != 'true'
+        run: |
+          mkdir .github/Papyrus
+          $repos = @("SRC", "SRC_SKYUI")
+          Set-Location .github/Papyrus
+          foreach ($repo in $repos) {
+            New-Item -ItemType Directory -Name $repo
+            Set-Location $repo
+            git init
+            git remote add origin https://github.com/IHateMyKite/PAPYRUS.git
+            git sparse-checkout set --no-cone $repo
+            git fetch --depth=1 origin main
+            git checkout main
+            Remove-Item .git -Recurse -Force
+            Set-Location ..
           }
 
-          7z x $capricaArchive.FullName -o".github/Caprica/" -y
+      - name: Checkout TESV Flags File
+        if: steps.cache-ss.outputs.cache-hit != 'true'
+        run: |
+          cd .github/Papyrus/SRC
+          mkdir temp
+          cd temp
+          git init
+          git remote add origin https://github.com/Rukan/Grimy-Skyrim-Papyrus-Source.git
+          git sparse-checkout set --no-cone 'TESV_Papyrus_Flags.flg'
+          git fetch --depth=1 origin master
+          git checkout master
+          Remove-Item .git -Recurse -Force
+          mv TESV_Papyrus_Flags.flg ../TESV_Papyrus_Flags.flg
+          Set-Location ..
+          Remove-Item temp -Recurse -Force
 
-          if (-not (Test-Path ".github/Caprica/Caprica.exe")) {
-            throw 'Caprica.exe not found after extraction.'
-          }
-
-      - name: Configure Papyrus paths
+      - name: Run Caprica
         shell: pwsh
-        run: |
-          $ErrorActionPreference = 'Stop'
-          if (-not (Test-Path ".github/Caprica/PapyrusCompiler.exe")) {
-            Copy-Item -Path .github/Caprica/Caprica.exe -Destination .github/Caprica/PapyrusCompiler.exe -Force
-          }
+        run: .github/Caprica/Caprica.exe --game skyrim --import ".github/Papyrus/SRC;.github/Papyrus/SRC_SKYUI;" --output "dist/Scripts" --flags=".github/Papyrus/SRC/TESV_Papyrus_Flags.flg" "${{ github.workspace }}/dist/Source/Scripts" -R -q
 
-          "PAPYRUS_PATH=$((Resolve-Path '.github/Caprica').Path)" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-          "PAPYRUS_INCLUDE=$((Join-Path $env:GITHUB_WORKSPACE 'dist'))" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-          "PAPYRUS_GAMESOURCE=$((Join-Path $env:GITHUB_WORKSPACE 'dist'))" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-
-      - name: Build Papyrus target
-        shell: pwsh
-        run: |
-          xmake f -c -m release --version=2 --build_dll=n --build_assets=n --build_papyrus=y --build_spriggit=n
-          xmake build papyrus
-
-      - name: Upload compiled Papyrus artifact
+      - name: Upload Compiled Scripts
         uses: actions/upload-artifact@v4
         with:
           name: compiled-papyrus
           path: dist/Scripts
 
   compile-esm:
-    name: Build Plugin (.esm via Spriggit)
+    name: Build Acheron.esm
     needs: project-version
     runs-on: windows-latest
+    
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          submodules: recursive
-
-      - name: Setup xmake
-        uses: xmake-io/github-action-setup-xmake@v1
-        with:
-          xmake-version: branch@master
 
       - name: Cache Spriggit
         id: cache-spriggit
         uses: actions/cache@v4
         with:
           path: .github/spriggit
-          key: ${{ runner.os }}-spriggit-SpriggitCLI
+          key: ${{ runner.os }}-spriggit-cli
 
       - name: Fetch Spriggit
         if: steps.cache-spriggit.outputs.cache-hit != 'true'
-        shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
+        shell: pwsh
         run: |
-          $ErrorActionPreference = 'Stop'
-          New-Item -ItemType Directory -Path .github -Force | Out-Null
-          gh release download -R Mutagen-Modding/Spriggit --pattern "SpriggitCLI.zip" --dir .github --clobber
-          7z x .github/SpriggitCLI.zip -o".github/spriggit/" -y
-
+          gh release download -R Mutagen-Modding/Spriggit --pattern "SpriggitCLI.zip" --dir .github
+          7z x .github/SpriggitCLI.zip -o".github/spriggit/"
           if (-not (Test-Path ".github/spriggit/Spriggit.CLI.exe")) {
-            throw 'Spriggit.CLI.exe not found after extraction.'
+            Write-Error "Spriggit.CLI.exe not found after extraction."
+            exit 1
           }
 
-      - name: Configure Spriggit path
+      - name: Deserialize ESP
         shell: pwsh
-        run: |
-          "SPRIGGIT_PATH=$((Resolve-Path '.github/spriggit').Path)" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+        run: .github\spriggit\Spriggit.CLI.exe deserialize --InputPath "res" --OutputPath "dist/Acheron.esm"
 
-      - name: Build plugin target
-        shell: pwsh
-        run: |
-          xmake f -c -m release --version=2 --build_dll=n --build_assets=n --build_papyrus=n --build_spriggit=y
-          xmake build Acheron.esm
-
-      - name: Upload ESM artifact
+      - name: Upload Plugin Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: built-esm
+          name: plugin
           path: dist/Acheron.esm
 
   compile-dll-1:
