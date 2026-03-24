@@ -93,7 +93,6 @@ jobs:
       - name: Checkout Other Papyrus Sources
         if: steps.cache-ss.outputs.cache-hit != 'true'
         run: |
-          mkdir .github/Papyrus
           $repos = @("SRC", "SRC_SKYUI")
           Set-Location .github/Papyrus
           foreach ($repo in $repos) {
