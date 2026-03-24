@@ -199,11 +199,11 @@ jobs:
       - name: Stage DLL files (1.5.97)
         shell: pwsh
         run: |
+          $ErrorActionPreference = 'Stop'
           New-Item -ItemType Directory -Path out/1.5.97/SKSE/Plugins -Force | Out-Null
-          Copy-Item -Path dist/SKSE/Plugins/Acheron.dll -Destination out/1.5.97/SKSE/Plugins/Acheron.dll -Force
-          if (Test-Path dist/SKSE/Plugins/Acheron.pdb) {
-            Copy-Item -Path dist/SKSE/Plugins/Acheron.pdb -Destination out/1.5.97/SKSE/Plugins/Acheron.pdb -Force
-          }
+
+          Copy-Item -Path 'build/windows/x64/release/Acheron.dll' -Destination out/1.5.97/SKSE/Plugins/Acheron.dll -Force
+          Copy-Item -Path 'build/windows/x64/release/Acheron.pdb' -Destination out/1.5.97/SKSE/Plugins/Acheron.pdb -Force
 
       - name: Upload DLL artifact (1.5.97)
         uses: actions/upload-artifact@v4
@@ -238,11 +238,11 @@ jobs:
       - name: Stage DLL files (1.6.1170)
         shell: pwsh
         run: |
+          $ErrorActionPreference = 'Stop'
           New-Item -ItemType Directory -Path out/1.6.1170/SKSE/Plugins -Force | Out-Null
-          Copy-Item -Path dist/SKSE/Plugins/Acheron.dll -Destination out/1.6.1170/SKSE/Plugins/Acheron.dll -Force
-          if (Test-Path dist/SKSE/Plugins/Acheron.pdb) {
-            Copy-Item -Path dist/SKSE/Plugins/Acheron.pdb -Destination out/1.6.1170/SKSE/Plugins/Acheron.pdb -Force
-          }
+
+          Copy-Item -Path 'build/windows/x64/release/Acheron.dll' -Destination out/1.6.1170/SKSE/Plugins/Acheron.dll -Force
+          Copy-Item -Path 'build/windows/x64/release/Acheron.pdb' -Destination out/1.6.1170/SKSE/Plugins/Acheron.pdb -Force
 
       - name: Upload DLL artifact (1.6.1170)
         uses: actions/upload-artifact@v4
