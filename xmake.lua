@@ -12,13 +12,17 @@ set_license("apache-2.0")
 set_warnings("allextra", "error")
 
 -- Includes
-includes("lib/CommonLibSSE/xmake.lua")
 includes("xmake/dotenv")
 includes("xmake/papyrus")
 includes("xmake/spriggit")
 add_moduledirs("xmake/modules")
 
 -- Options
+option("version")
+    set_default("2")
+    set_description("Game Version to build for: 0: VR, 1: V1.5.97, 2: V1.6.1170")
+option_end()
+
 option("papyrus_include")
     set_category("papyrus")
     set_description("Path to papyrus include directories",
@@ -93,6 +97,18 @@ option_end()
 -- Dependencies & Includes
 -- https://github.com/xmake-io/xmake-repo/tree/dev
 add_requires("yaml-cpp", "magic_enum", "nlohmann_json", "simpleini")
+
+local v = get_config("version")
+if v == "0" then
+    -- includes("lib/CommonLibVR/xmake.lua")
+    add_defines("SKYRIM_SUPPORT_VR")
+elseif v == "1" then
+    includes("lib/CommonLibSSE/xmake.lua")
+    set_config("skyrim_ae", false)
+else
+    includes("lib/CommonLibSSE/xmake.lua")
+    set_config("skyrim_ae", true)
+end
 
 -- policies
 set_policy("package.requires_lock", true)
@@ -199,6 +215,15 @@ target(PROJECT_NAME)
             clib:set("install", nil)
             clib:set("package", nil)
             clib:set("build_after", nil)
+        end
+        
+        local v = get_config("version")
+        if v == "0" then
+            print("Building plugin for Skyrim VR")
+        elseif v == "1" then
+            print("Building plugin for Skyrim SE v1.5.97")
+        else
+            print("Building plugin for Skyrim SE v1.6.1170")
         end
     end)
 
