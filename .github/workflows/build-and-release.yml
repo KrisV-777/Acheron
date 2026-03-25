@@ -201,10 +201,10 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
-          New-Item -ItemType Directory -Path out/1.5.97/SKSE/Plugins -Force | Out-Null
+          New-Item -ItemType Directory -Path out/1.5.97 -Force | Out-Null
 
-          Copy-Item -Path 'build/windows/x64/release/Acheron.dll' -Destination out/1.5.97/SKSE/Plugins/Acheron.dll -Force
-          Copy-Item -Path 'build/windows/x64/release/Acheron.pdb' -Destination out/1.5.97/SKSE/Plugins/Acheron.pdb -Force
+          Copy-Item -Path 'build/windows/x64/release/Acheron.dll' -Destination out/1.5.97/Acheron.dll -Force
+          Copy-Item -Path 'build/windows/x64/release/Acheron.pdb' -Destination out/1.5.97/Acheron.pdb -Force
 
       - name: Upload DLL artifact (1.5.97)
         uses: actions/upload-artifact@v4
@@ -240,16 +240,49 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
-          New-Item -ItemType Directory -Path out/1.6.1170/SKSE/Plugins -Force | Out-Null
+          New-Item -ItemType Directory -Path out/1.6.1170 -Force | Out-Null
 
-          Copy-Item -Path 'build/windows/x64/release/Acheron.dll' -Destination out/1.6.1170/SKSE/Plugins/Acheron.dll -Force
-          Copy-Item -Path 'build/windows/x64/release/Acheron.pdb' -Destination out/1.6.1170/SKSE/Plugins/Acheron.pdb -Force
+          Copy-Item -Path 'build/windows/x64/release/Acheron.dll' -Destination out/1.6.1170/Acheron.dll -Force
+          Copy-Item -Path 'build/windows/x64/release/Acheron.pdb' -Destination out/1.6.1170/Acheron.pdb -Force
 
       - name: Upload DLL artifact (1.6.1170)
         uses: actions/upload-artifact@v4
         with:
           name: dll-1-6-1170
           path: out/1.6.1170
+
+  make-fomod:
+    name: Build FOMOD Installer
+    needs:
+      - project-version
+      - compile-papyrus
+      - compile-esm
+      - compile-dll-1
+      - compile-dll-2
+    uses: adya/pack-skse-mod/.github/workflows/make-fomod.yml@main
+    with:
+      MOD_NAME: Acheron
+      MOD_AUTHOR: KrisV777
+      MOD_NEXUS_ID: 108159
+      TITLE: Choose Skyrim Version
+      GROUP_NAME: Game Version
+      REQUIRED_INSTALLATION_DIR: dist
+      REQUIRED_SRC_PATH: Required
+      REQUIRED_DST_PATH: ""
+      DST_PATH: SKSE/Plugins
+      INCLUDE_PDB: true
+      SE_NAME: Skyrim SE (1.5.97)
+      SE_DESCR: Skyrim Special Edition, 1.5.97
+      SE_PATH: SE
+      SE_MIN_GAME_VERSION: 1.5.97.0
+      SE_VERSION: ${{ needs.project-version.outputs.project_version }}
+      SE_ARTIFACT: dll-1-5-97
+      AE_NAME: Skyrim AE (1.6.1170+)
+      AE_DESCR: Skyrim Anniversary Edition, 1.6.1170 or later
+      AE_PATH: AE
+      AE_MIN_GAME_VERSION: 1.6.1130.0
+      AE_VERSION: ${{ needs.project-version.outputs.project_version }}
+      AE_ARTIFACT: dll-1-6-1170
 
   release:
     name: Create Release
@@ -261,6 +294,7 @@ jobs:
       - compile-esm
       - compile-dll-1
       - compile-dll-2
+      - make-fomod
     runs-on: windows-latest
     steps:
       - name: Checkout
@@ -290,6 +324,12 @@ jobs:
           name: dll-1-6-1170
           path: artifacts/dll-1-6-1170
 
+      - name: Download FOMOD installer
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.make-fomod.outputs.INSTALLER_NAME }}
+          path: fomod-staging
+
       - name: Build release archives
         shell: pwsh
         run: |
@@ -318,7 +358,7 @@ jobs:
 
             Copy-Item -Path artifacts/compiled-papyrus/* -Destination (Join-Path $packRoot 'Scripts') -Recurse -Force
             Copy-Item -Path artifacts/built-esm/Acheron.esm -Destination (Join-Path $packRoot 'Acheron.esm') -Force
-            Copy-Item -Path "$($target.DllRoot)/SKSE/Plugins/*" -Destination (Join-Path $packRoot 'SKSE/Plugins') -Recurse -Force
+            Copy-Item -Path "$($target.DllRoot)/*" -Destination (Join-Path $packRoot 'SKSE/Plugins') -Recurse -Force
             
             # Static dist assets (committed to repo)
             Copy-Item -Path dist/Interface -Destination (Join-Path $packRoot 'Interface') -Recurse -Force
@@ -332,6 +372,12 @@ jobs:
             }
             Compress-Archive -Path "$packRoot/*" -DestinationPath $archivePath -Force
           }
+
+      - name: Package FOMOD archive
+        shell: pwsh
+        run: |
+          $ver = '${{ needs.project-version.outputs.project_version }}'
+          Compress-Archive -Path 'fomod-staging/*' -DestinationPath "release/Acheron - $ver - FOMOD.zip" -Force
 
       - name: Check latest release tag and compare versions
         id: release_state
@@ -390,3 +436,4 @@ jobs:
           files: |
             release/Acheron - ${{ needs.project-version.outputs.project_version }} - 1.5.97.zip
             release/Acheron - ${{ needs.project-version.outputs.project_version }} - 1.6.1170.zip
+            release/Acheron - ${{ needs.project-version.outputs.project_version }} - FOMOD.zip
