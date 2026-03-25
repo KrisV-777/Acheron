@@ -8,9 +8,6 @@ on:
     branches:
       - master
 
-permissions:
-  contents: write
-
 concurrency:
   group: ci-release-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -255,7 +252,9 @@ jobs:
           path: out/1.6.1170
 
   release:
-    name: Create Release (if version is newer)
+    name: Create Release
+    permissions:
+        contents: write
     needs:
       - project-version
       - compile-papyrus
