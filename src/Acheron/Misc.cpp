@@ -55,7 +55,11 @@ namespace Acheron
             }
             const auto item = data.second.get()->GetObject()->As<RE::TESObjectARMO>();
             if (a_ignoredmasks) {
+                #ifdef SKYRIM_SUPPORT_VR
                 const auto slots = item->GetSlotMask().underlying();
+                #else
+                const auto slots = static_cast<uint32_t>(item->GetSlotMask());
+                #endif
                 // sort out items which have no enabled slots (dont throw out if at least 1 slot matches)
                 if ((slots & a_ignoredmasks) == 0)
                     continue;

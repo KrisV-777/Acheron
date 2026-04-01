@@ -457,7 +457,11 @@ namespace Acheron
                 auto kwd = e->As<RE::BGSKeywordForm>();
                 if (kwd && kwd->ContainsKeywordString("NoStrip"))
                     continue;
+#ifdef SKYRIM_SUPPORT_VR
                 occupied += e->GetSlotMask().underlying();
+#else
+                occupied += static_cast<uint32_t>(e->GetSlotMask());
+#endif
             }
             constexpr auto ign{ (1U << 1) + (1U << 5) + (1U << 6) + (1U << 9) + (1U << 11) + (1U << 12) + (1U << 13) + (1U << 15) + (1U << 20) + (1U << 21) + (1U << 31) };
             auto t = std::popcount(occupied & (~ign));
