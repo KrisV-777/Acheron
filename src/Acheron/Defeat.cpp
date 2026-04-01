@@ -65,13 +65,13 @@ namespace Acheron
             }
         }
 
-        #ifdef SKYRIM_SUPPORT_VR
-            a_victim->GetActorRuntimeData().boolFlags.set(RE::Actor::BOOL_FLAGS::kNoBleedoutRecovery);
-            const auto& process = a_victim->GetActorRuntimeData().currentProcess;
-        #else
+#ifdef SKYRIM_SUPPORT_VR
+        a_victim->GetActorRuntimeData().boolFlags.set(RE::Actor::BOOL_FLAGS::kNoBleedoutRecovery);
+        const auto& process = a_victim->GetActorRuntimeData().currentProcess;
+#else
         a_victim->boolFlags.set(RE::Actor::BOOL_FLAGS::kNoBleedoutRecovery);
         const auto& process = a_victim->currentProcess;
-        #endif
+#endif
 
         if (a_victim->Is3DLoaded()) {
             if (process) {
