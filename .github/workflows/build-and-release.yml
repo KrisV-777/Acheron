@@ -8,6 +8,9 @@ on:
     branches:
       - master
 
+permissions:
+  contents: read
+
 concurrency:
   group: ci-release-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -39,8 +42,8 @@ jobs:
 
   compile-papyrus:
     name: Compile Papyrus scripts
-    needs: project-version
     runs-on: windows-latest
+    timeout-minutes: 20
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -136,8 +139,8 @@ jobs:
 
   compile-esm:
     name: Build Acheron.esm
-    needs: project-version
     runs-on: windows-latest
+    timeout-minutes: 15
     
     steps:
       - name: Checkout
@@ -173,10 +176,26 @@ jobs:
           name: built-esm
           path: dist/Acheron.esm
 
-  compile-dll-0:
-    name: Build DLL (VR)
-    needs: project-version
+  compile-dll:
+    name: Build DLL (${{ matrix.label }})
     runs-on: windows-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - gamever: "0"
+            label: VR
+            out_dir: vr
+            artifact: dll-vr
+          - gamever: "1"
+            label: 1.5.97
+            out_dir: 1.5.97
+            artifact: dll-1-5-97
+          - gamever: "2"
+            label: 1.6.1170
+            out_dir: 1.6.1170
+            artifact: dll-1-6-1170
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -189,106 +208,39 @@ jobs:
       - name: Setup xmake
         uses: xmake-io/github-action-setup-xmake@v1
 
+      - name: Cache xmake packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~\.xmake\cache\packages
+            ~\.xmake\packages
+          key: ${{ runner.os }}-xmake-${{ matrix.gamever }}-${{ hashFiles('xmake-requires.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-xmake-${{ matrix.gamever }}-
+            ${{ runner.os }}-xmake-
+
       - name: Configure
         shell: pwsh
-        run: xmake f -c -y -m release --gamever=0 --build_assets=n --build_papyrus=n --build_spriggit=n --build_dll=y
+        run: xmake f -c -y -m release --gamever=${{ matrix.gamever }} --build_assets=n --build_papyrus=n --build_spriggit=n --build_dll=y
 
       - name: Build
         shell: pwsh
         run: xmake -b -y Acheron
 
-      - name: Stage DLL files (VR)
+      - name: Stage DLL files (${{ matrix.label }})
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
-          New-Item -ItemType Directory -Path out/vr -Force | Out-Null
+          New-Item -ItemType Directory -Path out/${{ matrix.out_dir }} -Force | Out-Null
 
-          Copy-Item -Path 'build/windows/x64/release/Acheron.dll' -Destination out/vr/Acheron.dll -Force
-          Copy-Item -Path 'build/windows/x64/release/Acheron.pdb' -Destination out/vr/Acheron.pdb -Force
+          Copy-Item -Path 'build/windows/x64/release/Acheron.dll' -Destination out/${{ matrix.out_dir }}/Acheron.dll -Force
+          Copy-Item -Path 'build/windows/x64/release/Acheron.pdb' -Destination out/${{ matrix.out_dir }}/Acheron.pdb -Force
 
-      - name: Upload DLL artifact (VR)
+      - name: Upload DLL artifact (${{ matrix.label }})
         uses: actions/upload-artifact@v4
         with:
-          name: dll-vr
-          path: out/vr
-
-  compile-dll-1:
-    name: Build DLL (1.5.97)
-    needs: project-version
-    runs-on: windows-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          submodules: recursive
-
-      - name: Setup MSVC
-        uses: ilammy/msvc-dev-cmd@v1
-
-      - name: Setup xmake
-        uses: xmake-io/github-action-setup-xmake@v1
-
-      - name: Configure
-        shell: pwsh
-        run: xmake f -c -y -m release --gamever=1 --build_assets=n --build_papyrus=n --build_spriggit=n --build_dll=y
-
-      - name: Build
-        shell: pwsh
-        run: xmake -b -y Acheron
-
-      - name: Stage DLL files (1.5.97)
-        shell: pwsh
-        run: |
-          $ErrorActionPreference = 'Stop'
-          New-Item -ItemType Directory -Path out/1.5.97 -Force | Out-Null
-
-          Copy-Item -Path 'build/windows/x64/release/Acheron.dll' -Destination out/1.5.97/Acheron.dll -Force
-          Copy-Item -Path 'build/windows/x64/release/Acheron.pdb' -Destination out/1.5.97/Acheron.pdb -Force
-
-      - name: Upload DLL artifact (1.5.97)
-        uses: actions/upload-artifact@v4
-        with:
-          name: dll-1-5-97
-          path: out/1.5.97
-
-  compile-dll-2:
-    name: Build DLL (1.6.1170)
-    needs: project-version
-    runs-on: windows-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          submodules: recursive
-
-      - name: Setup MSVC
-        uses: ilammy/msvc-dev-cmd@v1
-
-      - name: Setup xmake
-        uses: xmake-io/github-action-setup-xmake@v1
-
-      - name: Configure
-        shell: pwsh
-        run: xmake f -c -y -m release --gamever=2 --build_assets=n --build_papyrus=n --build_spriggit=n --build_dll=y
-
-      - name: Build
-        shell: pwsh
-        run: xmake -b -y Acheron
-
-      - name: Stage DLL files (1.6.1170)
-        shell: pwsh
-        run: |
-          $ErrorActionPreference = 'Stop'
-          New-Item -ItemType Directory -Path out/1.6.1170 -Force | Out-Null
-
-          Copy-Item -Path 'build/windows/x64/release/Acheron.dll' -Destination out/1.6.1170/Acheron.dll -Force
-          Copy-Item -Path 'build/windows/x64/release/Acheron.pdb' -Destination out/1.6.1170/Acheron.pdb -Force
-
-      - name: Upload DLL artifact (1.6.1170)
-        uses: actions/upload-artifact@v4
-        with:
-          name: dll-1-6-1170
-          path: out/1.6.1170
+          name: ${{ matrix.artifact }}
+          path: out/${{ matrix.out_dir }}
 
   make-fomod:
     name: Build FOMOD Installer
@@ -296,9 +248,7 @@ jobs:
       - project-version
       - compile-papyrus
       - compile-esm
-      - compile-dll-0
-      - compile-dll-1
-      - compile-dll-2
+      - compile-dll
     uses: adya/pack-skse-mod/.github/workflows/make-fomod.yml@main
     with:
       MOD_NAME: Acheron
@@ -330,19 +280,16 @@ jobs:
       AE_VERSION: ${{ needs.project-version.outputs.project_version }}
       AE_ARTIFACT: dll-1-6-1170
 
-  release:
-    name: Create Release
-    permissions:
-        contents: write
+  package-artifacts:
+    name: Package Release Artifacts
     needs:
       - project-version
       - compile-papyrus
       - compile-esm
-      - compile-dll-0
-      - compile-dll-1
-      - compile-dll-2
+      - compile-dll
       - make-fomod
     runs-on: windows-latest
+    timeout-minutes: 20
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -441,6 +388,29 @@ jobs:
           $ver = '${{ needs.project-version.outputs.project_version }}'
           Compress-Archive -Path 'fomod-staging/*' -DestinationPath "release/Acheron - $ver - FOMOD.zip" -Force
 
+      - name: Upload package artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-packages
+          path: release/*.zip
+
+  publish-release:
+    name: Create GitHub Release
+    if: github.event_name == 'push'
+    permissions:
+      contents: write
+    needs:
+      - project-version
+      - package-artifacts
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - name: Download packaged release artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: release-packages
+          path: release
+
       - name: Check latest release tag and compare versions
         id: release_state
         shell: pwsh
@@ -482,12 +452,6 @@ jobs:
           "release_tag=v$currentVersionText" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
           "should_release=$($shouldRelease.ToString().ToLowerInvariant())" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
 
-      - name: Upload package artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: release-packages
-          path: release/*.zip
-
       - name: Create GitHub release
         if: steps.release_state.outputs.should_release == 'true'
         uses: softprops/action-gh-release@v2
@@ -495,7 +459,4 @@ jobs:
           tag_name: ${{ steps.release_state.outputs.release_tag }}
           name: Acheron ${{ steps.release_state.outputs.current_version }}
           generate_release_notes: true
-          files: |
-            release/Acheron - ${{ needs.project-version.outputs.project_version }} - 1.5.97.zip
-            release/Acheron - ${{ needs.project-version.outputs.project_version }} - 1.6.1170.zip
-            release/Acheron - ${{ needs.project-version.outputs.project_version }} - FOMOD.zip
+          files: release/*.zip
