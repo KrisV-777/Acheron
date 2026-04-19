@@ -48,32 +48,6 @@ Effects:
 - MutagenObjectType: PerkEntryPointModifyValue
   Priority: 10
   Conditions:
-  - RunOnTabIndex: 1
-    Conditions:
-    - MutagenObjectType: ConditionFloat
-      Data:
-        MutagenObjectType: GetDeadConditionData
-    - MutagenObjectType: ConditionFloat
-      Data:
-        MutagenObjectType: HasKeywordConditionData
-        Keyword: 000801:Acheron.esm
-    - MutagenObjectType: ConditionFloat
-      Data:
-        MutagenObjectType: HasKeywordConditionData
-        Keyword: 000802:Acheron.esm
-      ComparisonValue: 1
-    - MutagenObjectType: ConditionFloat
-      Data:
-        MutagenObjectType: IsHostileToActorConditionData
-        TargetNpc: 000014:Skyrim.esm
-      ComparisonValue: 1
-  EntryPoint: FilterActivation
-  PerkConditionTabCount: 2
-  Modification: Add
-  Value: 1
-- MutagenObjectType: PerkEntryPointModifyValue
-  Priority: 10
-  Conditions:
   - Conditions:
     - MutagenObjectType: ConditionFloat
       Data:
@@ -102,3 +76,29 @@ Effects:
   Text:
     TargetLanguage: English
     Value: Defeated
+- MutagenObjectType: PerkEntryPointModifyValue
+  Priority: 10
+  Conditions:
+  - RunOnTabIndex: 1
+    Conditions:
+    - MutagenObjectType: ConditionFloat
+      Data:
+        MutagenObjectType: GetDeadConditionData
+    - MutagenObjectType: ConditionFloat
+      Data:
+        MutagenObjectType: HasKeywordConditionData
+        Keyword: 000801:Acheron.esm
+    - MutagenObjectType: ConditionFloat
+      Data:
+        MutagenObjectType: HasKeywordConditionData
+        Keyword: 000802:Acheron.esm
+      ComparisonValue: 1
+    - MutagenObjectType: ConditionFloat
+      Data:
+        MutagenObjectType: IsHostileToActorConditionData
+        TargetNpc: 000014:Skyrim.esm
+      ComparisonValue: 1
+  EntryPoint: FilterActivation
+  PerkConditionTabCount: 2
+  Modification: Add
+  Value: 1

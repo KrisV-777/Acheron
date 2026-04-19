@@ -5,6 +5,7 @@ Function OpenHunterPrideMenu(Actor akTarget) native
 PlayerVampireQuestScript Property PlayerVampireQuest Auto
 Activator Property HealTargetFX Auto
 Actor Property PlayerRef Auto
+Idle Property pa_HugA Auto
 
 Message Property IsEssentialMsg Auto
 Message Property NoPotionMsg Auto
@@ -37,8 +38,32 @@ Event OnHunterPrideSelect(int aiOptionID, Actor akTarget)
     If(CheckEssential(akTarget))
       return
     EndIf
-    ; TODO: Add Animation
-    akTarget.Kill(PlayerRef)
+  
+    ;preparation
+    Game.ForceThirdPerson()
+    akTarget.SetHeadTracking(false)
+    PlayerRef.SetHeadTracking(false)
+    
+    ;move the player back
+    Float zOffset = PlayerRef.GetHeadingAngle(akTarget)
+    PlayerRef.SetAngle(0.0, 0.0, PlayerRef.GetAngleZ() + zOffset)
+    Utility.Wait(0.1)
+    
+    ;sheathe the weapon
+    If PlayerRef.IsWeaponDrawn()
+        PlayerRef.SheatheWeapon()
+        Float i = 3.0
+        While (PlayerRef.IsWeaponDrawn() && (i > 0.0))
+            Utility.Wait(0.1)
+            i -= 0.1
+        EndWhile
+    Endif
+    
+    ;bring the target from the bleedout to default state & play our animation
+    Debug.SendAnimationEvent(akTarget, "IdleForceDefaultState")
+    PlayerRef.playIdleWithTarget(pa_HugA, akTarget)
+    
+    PlayerRef.SetHeadTracking(true)
   ElseIf(aiOptionID == 3)
     If(CheckEssential(akTarget))
       return

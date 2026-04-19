@@ -14,6 +14,9 @@ VirtualMachineAdapter:
       Name: NoPotionMsg
       Object: 000808:Acheron.esm
     - MutagenObjectType: ScriptObjectProperty
+      Name: pa_HugA
+      Object: 0F4699:Skyrim.esm
+    - MutagenObjectType: ScriptObjectProperty
       Name: PlayerRef
       Object: 000014:Skyrim.esm
     - MutagenObjectType: ScriptObjectProperty
