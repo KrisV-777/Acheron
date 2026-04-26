@@ -131,6 +131,8 @@ namespace Acheron
 
     EventResult EventHandler::ProcessEvent(RE::InputEvent* const* a_event, RE::BSTEventSource<RE::InputEvent*>*)
     {
+        if (!Settings::ProcessingEnabled)
+            return EventResult::kContinue;
         if (!a_event || (Settings::iHunterPrideKey == -1 && Settings::iSurrenderKey == -1))
             return EventResult::kContinue;
 

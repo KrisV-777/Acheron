@@ -2,13 +2,22 @@
 
 #include "Acheron/Misc.h"
 #include "Acheron/Validation.h"
+#include "GameForms.h"
 #include "Util/Misc.h"
 
 namespace Papyrus
 {
     namespace Status
     {
-        inline void DisableProcessing(RE::StaticFunctionTag*, bool a_disable) { Settings::ProcessingEnabled = !a_disable; }
+        inline void DisableProcessing(RE::StaticFunctionTag*, bool a_disable)
+        {
+            Settings::ProcessingEnabled = !a_disable;
+            if (a_disable) {
+                auto player = RE::PlayerCharacter::GetSingleton();
+                if (player->HasSpell(Acheron::GameForms::HunterPride))
+                    player->RemoveSpell(Acheron::GameForms::HunterPride);
+            }
+        }
         inline void DisableConsequence(RE::StaticFunctionTag*, bool a_disable) { Settings::ConsequenceEnabled = !a_disable; }
         inline bool IsProcessingDisabled(RE::StaticFunctionTag*) { return !Settings::ProcessingEnabled; }
         inline bool IsConsequenceDisabled(RE::StaticFunctionTag*) { return !Settings::ConsequenceEnabled; }
