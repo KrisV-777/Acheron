@@ -106,6 +106,7 @@ Assailant:
 Victim:
   Reference:
     - 0x000A733C  # Vigilant Tyranus (DA10)
+    - 0x000198F3  # Logrolf the Willful (DA10)
   ActorBase:
     - FormID: 0x00013387 # Anton
       Conditions:
