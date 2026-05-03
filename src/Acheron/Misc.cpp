@@ -55,11 +55,7 @@ namespace Acheron
             }
             const auto item = data.second.get()->GetObject()->As<RE::TESObjectARMO>();
             if (a_ignoredmasks) {
-#ifdef SKYRIM_SUPPORT_VR
                 const auto slots = item->GetSlotMask().underlying();
-#else
-                const auto slots = static_cast<uint32_t>(item->GetSlotMask());
-#endif
                 // sort out items which have no enabled slots (dont throw out if at least 1 slot matches)
                 if ((slots & a_ignoredmasks) == 0)
                     continue;
@@ -102,17 +98,6 @@ namespace Acheron
     {
         const auto k = a_form->As<RE::BGSKeywordForm>();
         return k ? k->HasKeywordID(0xA8668) : false;  // DaedricArtifact
-    }
-
-    // c @ Fenix31415
-    // Probably someone will find it useful.Didn't find it in clib. to call it :
-    // 	auto idle = RE::TESForm::LookupByID<RE::TESIdleForm>(0x6440c);
-    // PlayIdle(attacker->currentProcess, attacker, RE::DEFAULT_OBJECT::kActionIdle, idle, true, false, victim);
-    bool PlayIdle(RE::AIProcess* proc, RE::Actor* attacker, RE::DEFAULT_OBJECT smth, RE::TESIdleForm* idle, bool a5, bool a6, RE::TESObjectREFR* target)
-    {
-        using func_t = decltype(&PlayIdle);
-        REL::Relocation<func_t> func{ RELID(38290, 38290) };  // TODO: AE RELID
-        return func(proc, attacker, smth, idle, a5, a6, target);
     }
 
 }  // namespace Acheron

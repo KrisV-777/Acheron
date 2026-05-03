@@ -298,10 +298,10 @@ namespace Papyrus
 
     bool Utility::OpenCustomMenu(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, std::string_view a_filepath)
     {
-#ifdef SKYRIM_SUPPORT_VR
-        a_vm->TraceStack("Custom Menu is not supported in VR Edition", a_stackID);
-        return false;
-#endif
+        if (REL::Module::IsVR()) {
+            a_vm->TraceStack("Custom Menu is not supported in VR Edition", a_stackID);
+            return false;
+        }
         if (a_filepath.empty()) {
             a_vm->TraceStack("File path to swf file is empty", a_stackID);
             return false;
@@ -321,9 +321,10 @@ namespace Papyrus
 
     void Utility::CloseCustomMenu(RE::StaticFunctionTag*)
     {
-#ifndef SKYRIM_SUPPORT_VR
+        if (REL::Module::IsVR()) {
+            return;
+        }
         Acheron::Interface::CustomMenu::Hide();
-#endif
     }
 
 }  // namespace Papyrus

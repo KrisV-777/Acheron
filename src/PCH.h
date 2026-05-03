@@ -18,11 +18,9 @@ static_assert(magic_enum::is_magic_enum_supported);
 #include <spdlog/sinks/msvc_sink.h>
 #pragma warning(pop)
 
-#ifdef SKYRIM_SUPPORT_VR
 #undef max
 #undef min
 #undef GetObject
-#endif
 
 namespace logger = SKSE::log;
 namespace fs = std::filesystem;
@@ -38,14 +36,6 @@ using json = nlohmann::json;
 #include "Serialization/Settings.h"
 
 static constexpr auto CONFIGPATH = [](std::string file) -> std::string { return "Data\\SKSE\\Acheron\\"s + file; };
-
-#ifdef SKYRIM_SUPPORT_AE
-#define RELID(SE, AE) REL::ID(AE)
-#define OFFSET(SE, AE) AE
-#else  // SE & VR
-#define RELID(SE, AE) REL::ID(SE)
-#define OFFSET(SE, AE) SE
-#endif
 
 using Serialize = Serialization::Serialize;
 namespace stl

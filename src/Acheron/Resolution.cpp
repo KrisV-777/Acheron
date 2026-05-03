@@ -369,11 +369,7 @@ namespace Acheron
             if (actor->IsHostileToActor(a_victim)) {
                 return true;
             }
-#ifdef SKYRIM_SUPPORT_VR
             const auto target = actor->GetActorRuntimeData().currentCombatTarget.get();
-#else
-            const auto target = actor->currentCombatTarget.get();
-#endif
             return target ? target.get() == a_victim || !target->IsHostileToActor(a_victim) || a_victim->IsPlayerRef() && target->IsPlayerTeammate() : false;
         };
         std::vector<RE::Actor*> memberlist{ a_aggressor };

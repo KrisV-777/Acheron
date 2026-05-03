@@ -13,7 +13,7 @@ namespace Acheron
 {
     void Hooks::Install()
     {
-        REL::Relocation<std::uintptr_t> phd{ RELID(37633, 38586), OFFSET(0x76, 0x7e) };
+        REL::Relocation<std::uintptr_t> phd{ REL::RelocationID(37633, 38586), REL::VariantOffset(0x76, 0x7e, 0x76) };
         // MOV R13,RDX	; HitData* a_hitData
         // MOV R15,RCX	; Actor* a_target
         // ...
@@ -21,20 +21,35 @@ namespace Acheron
         // JZ LAB_1406b8d42                ; 	return;
         struct ProcessHitData_Patch : Xbyak::CodeGenerator
         {
+            Xbyak::Reg64 FetchReg(Xbyak::Reg64 se, Xbyak::Reg64 ae)
+            {
+                switch (REL::Module::GetRuntime()) {
+                case REL::Module::Runtime::AE:
+                    return ae;
+                case REL::Module::Runtime::SE:
+                    return se;
+                case REL::Module::Runtime::VR:
+                    return se;
+                default:
+                    logger::error("unsupported runtime, cannot fetch register");
+                    throw std::runtime_error("unsupported runtime");
+                }
+            }
+
             ProcessHitData_Patch(size_t a_retAddr)
             {
                 Xbyak::Label retLbl;
                 Xbyak::Label retPtr;
                 Xbyak::Label callPtr;
 
-                cmp(qword[rcx + OFFSET(0xf0, 0xf8)], 0);
+                cmp(qword[rcx + REL::VariantOffset(0xf0, 0xf8, 0xf0).offset()], 0);
                 jz(retLbl);
 
                 call(ptr[rip + callPtr]);
                 test(al, al);
 
-                mov(rcx, OFFSET(r14, r15));
-                mov(rdx, OFFSET(r15, r13));
+                mov(rcx, FetchReg(r14, r15));
+                mov(rdx, FetchReg(r15, r13));
                 L(retLbl);
                 jmp(ptr[rip + retPtr]);
 
@@ -55,19 +70,19 @@ namespace Acheron
         trampoline.write_branch<5>(phd.address(), patchDst);
         REL::safe_fill(phd.address() + 5, 0x90, 3);
         // ==================================================
-        REL::Relocation<std::uintptr_t> magichit{ RELID(33763, 34547), OFFSET(0x52F, 0x7B1) };
+        REL::Relocation<std::uintptr_t> magichit{ REL::RelocationID(33763, 34547), REL::VariantOffset(0x52F, 0x7B1, 0x52F) };
         _MagicHit = trampoline.write_call<5>(magichit.address(), MagicHit);
         // ==================================================
-        REL::Relocation<std::uintptr_t> mha{ RELID(33742, 34526), OFFSET(0x1E8, 0x20B) };
+        REL::Relocation<std::uintptr_t> mha{ REL::RelocationID(33742, 34526), REL::VariantOffset(0x1E8, 0x20B, 0x1E8) };
         _DoesMagicHitApply = trampoline.write_call<5>(mha.address(), DoesMagicHitApply);
         // ==================================================
-        REL::Relocation<std::uintptr_t> det{ RELID(41659, 42742), OFFSET(0x526, 0x67B) };
+        REL::Relocation<std::uintptr_t> det{ REL::RelocationID(41659, 42742), REL::VariantOffset(0x526, 0x67B, 0x526) };
         _DoDetect = trampoline.write_call<5>(det.address(), DoDetect);
         // ==================================================
-        REL::Relocation<std::uintptr_t> ragdoll_dmg{ RELOCATION_ID(36346, 37336), 0x35 };
+        REL::Relocation<std::uintptr_t> ragdoll_dmg{ REL::RelocationID(36346, 37336), 0x35 };
         _FallAndPhysicsDamage = trampoline.write_call<5>(ragdoll_dmg.address(), FallAndPhysicsDamage<false>);
         // ==================================================
-        REL::Relocation<std::uintptr_t> movefinish{ RELOCATION_ID(36973, 37998), OFFSET(0xAE, 0xAB) };
+        REL::Relocation<std::uintptr_t> movefinish{ REL::RelocationID(36973, 37998), REL::VariantOffset(0xAE, 0xAB, 0xAE) };
         _FallAndPhysicsDamage = trampoline.write_call<5>(movefinish.address(), FallAndPhysicsDamage<true>);
         // ==================================================
         REL::Relocation<std::uintptr_t> plu{ RE::PlayerCharacter::VTABLE[0] };
@@ -85,12 +100,7 @@ namespace Acheron
     {
         _PlUpdate(a_player, a_delta);
 
-#ifdef SKYRIM_SUPPORT_VR
         const auto plFlags = a_player->GetPlayerRuntimeData().playerFlags;
-#else
-        const auto plFlags = a_player->playerFlags;
-#endif
-
         static bool __combat = plFlags.isInCombat;
         if (__combat != plFlags.isInCombat) {
             __combat = plFlags.isInCombat;
@@ -138,22 +148,13 @@ namespace Acheron
             if (data->mark_for_recovery && data->allow_recovery && Settings::bNPCRescueReload) {
                 // isLoading is true when loading from a prev location / is false when loading save
                 const auto player = RE::PlayerCharacter::GetSingleton();
-#ifdef SKYRIM_SUPPORT_VR
                 const auto plFlags = player->GetPlayerRuntimeData().playerFlags;
-#else
-                const auto plFlags = player->playerFlags;
-#endif
                 if (plFlags.isLoading) {
                     Defeat::RescueActor(&a_this, true);
                     return ret;
                 }
             }
-#ifdef SKYRIM_SUPPORT_VR
-            const auto process = a_this.GetActorRuntimeData().currentProcess;
-#else
-            const auto process = a_this.currentProcess;
-#endif
-            if (process) {
+            if (const auto process = a_this.GetActorRuntimeData().currentProcess) {
                 process->PlayIdle(&a_this, GameForms::BleedoutStart, &a_this);
             } else {
                 a_this.NotifyAnimationGraph("BleedoutStart");
@@ -376,7 +377,7 @@ namespace Acheron
 
     bool Hooks::DoesMagicHitApply(RE::MagicTarget* a_target, RE::MagicTarget::AddTargetData* a_data)
     {
-        const auto target = a_target->MagicTargetIsActor() ? static_cast<RE::Actor*>(a_target) : nullptr;
+        const auto target = a_target->GetTargetAsActor();
         if (target && !target->IsDead() && Defeat::IsDamageImmune(target)) {
             auto spell = a_data ? a_data->magicItem : nullptr;
             if (!spell)
@@ -446,12 +447,10 @@ namespace Acheron
         if (a_victim->IsPlayerTeammate())
             return Random::draw<float>(0, 99.5f) < Settings::fLethalFollower;
 
-#ifdef SKYRIM_SUPPORT_VR
         const auto& flags = a_victim->GetActorRuntimeData().boolFlags;
-#else
-        const auto& flags = a_victim->boolFlags;
-#endif
-        if (Settings::bLethalEssential && (flags.all(Flag::kEssential) || !(a_aggressor && a_aggressor->IsPlayerRef()) && flags.all(Flag::kProtected)))
+        const auto isEssential = flags.all(Flag::kEssential);
+        const auto isProtected = !(a_aggressor && a_aggressor->IsPlayerRef()) && flags.all(Flag::kProtected);
+        if (Settings::bLethalEssential && (isEssential || isProtected))
             return true;
 
         return Random::draw<float>(0, 99.5f) < Settings::fLethalNPC;
@@ -461,19 +460,27 @@ namespace Acheron
     {
         if (Settings::iExposed > 0 && Random::draw<float>(0, 99.5) < Settings::fExposedChance) {
             const auto gear = GetWornArmor(a_victim, Settings::iStrips);
-            uint32_t occupied = 0;
+            REX::EnumSet<RE::BipedObjectSlot, uint32_t> occupied{ RE::BipedObjectSlot::kNone };
             for (auto& e : gear) {
                 auto kwd = e->As<RE::BGSKeywordForm>();
                 if (kwd && kwd->ContainsKeywordString("NoStrip"))
                     continue;
-#ifdef SKYRIM_SUPPORT_VR
-                occupied += e->GetSlotMask().underlying();
-#else
-                occupied += static_cast<uint32_t>(e->GetSlotMask());
-#endif
+                occupied |= e->GetSlotMask();
             }
-            constexpr auto ign{ (1U << 1) + (1U << 5) + (1U << 6) + (1U << 9) + (1U << 11) + (1U << 12) + (1U << 13) + (1U << 15) + (1U << 20) + (1U << 21) + (1U << 31) };
-            auto t = std::popcount(occupied & (~ign));
+            constexpr decltype(occupied) ignoredSlots{
+                RE::BipedObjectSlot::kHair,
+                RE::BipedObjectSlot::kAmulet,
+                RE::BipedObjectSlot::kRing,
+                RE::BipedObjectSlot::kShield,
+                RE::BipedObjectSlot::kLongHair,
+                RE::BipedObjectSlot::kCirclet,
+                RE::BipedObjectSlot::kEars,
+                RE::BipedObjectSlot::kModNeck,
+                RE::BipedObjectSlot::kDecapitateHead,
+                RE::BipedObjectSlot::kDecapitate,
+                RE::BipedObjectSlot::kFX01
+            };
+            auto t = std::popcount(occupied.underlying() & (~ignoredSlots.underlying()));
             if (t < Settings::iExposed)
                 return true;
         }
@@ -529,20 +536,11 @@ namespace Acheron
     void Hooks::AdjustByDifficultyMult(float& damage, const bool playerPOV, const bool onlyReduce)
     {
         const auto s = RE::GetINISetting("iDifficulty:GamePlay");
-#ifdef SKYRIM_SUPPORT_VR
         if (s->GetType() != RE::Setting::Type::kInteger)
             return;
-#else
-        if (s->GetType() != RE::Setting::Type::kSignedInteger)
-            return;
-#endif
 
         std::string diff{ "fDiffMultHP"s + (playerPOV ? "ToPC"s : "ByPC"s) };
-#ifdef SKYRIM_SUPPORT_VR
         switch (s->GetInteger()) {
-#else
-        switch (s->GetSInt()) {
-#endif
         case 0:
             diff.append("VE");
             break;
