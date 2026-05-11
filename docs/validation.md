@@ -147,7 +147,6 @@ Use that file as the canonical example for real-world rules and conditional patt
 ## Common Mistakes
 
 - Using map entries like `FormID: Victim` (not supported)
-- Using `AssailantOrVictim` as a value (not parsed)
 - Forgetting list format (`- item`) for exclusion branches
 - Using non-existent form strings without loading required plugins
 

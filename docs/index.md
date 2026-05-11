@@ -40,23 +40,12 @@ At runtime it:
 - [Validation](Validation.md)
 - [Papyrus API](Papyrus-API.md)
 - [Developer Guide](Developer-Guide.md)
-- [Docs README](README.md)
-
-## Minimal Event Config
-
-```yaml
-Version: 2
-Name: "My Event"
-Quest: 0x800|MyMod.esp
-```
 
 ## Notes
 
-- Files must use `.yml` or `.yaml`.
+- All Configuration Files use `.yml` or `.yaml`.
 - Event file extension and field validation are strict.
-- Missing `Requirements` plugins reject that event file.
 - Event weights are loaded from `Data/SKSE/Acheron/Consequences/Weights.yaml`.
-- Most Papyrus functions are on script `Acheron`; `OpenHunterPrideMenu` is on `AcheronHunterPride`.
 
 ## Last Updated
 
