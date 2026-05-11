@@ -5,17 +5,11 @@ nav_order: 5
 
 # Papyrus API
 
-This page documents the Papyrus functions and event registration helpers currently exposed by the plugin.
+This page documents the Papyrus functions and event registration helpers currently exposed by the plugin.  
 
-## Script Names
+The public API can be found in `Acheron.psc`. 
 
-Most functions are registered on script name `Acheron`.
-
-One function is registered on script name `AcheronHunterPride`:
-
-- `OpenHunterPrideMenu(Quest, Actor)`
-
-## Status Functions (`Acheron`)
+## Status Functions
 
 | Function | Behavior |
 |---|---|
@@ -25,7 +19,7 @@ One function is registered on script name `AcheronHunterPride`:
 | `IsConsequenceDisabled()` | Returns current consequence-disabled state. |
 | `IsTeleportAllowed()` | Returns current teleport allowance from validation. |
 
-## Defeat Functions (`Acheron`)
+## Defeat Functions
 
 | Function | Behavior |
 |---|---|
@@ -40,7 +34,7 @@ One function is registered on script name `AcheronHunterPride`:
 
 ## Hunter Pride Functions
 
-### Options (`Acheron`)
+### Options
 
 | Function | Behavior |
 |---|---|
@@ -49,13 +43,7 @@ One function is registered on script name `AcheronHunterPride`:
 | `HasOption(string id)` | Checks whether option exists. |
 | `GetOptionID(string id)` | Resolves option ID (`0..3` for built-ins, custom start at `4`). |
 
-### Menu (`AcheronHunterPride`)
-
-| Function | Behavior |
-|---|---|
-| `OpenHunterPrideMenu(Quest owningQuest, Actor target)` | Opens Hunter Pride UI for `target`. Trace error if target is `None`. |
-
-## Utility Functions (`Acheron`)
+## Utility Functions
 
 | Function | Behavior |
 |---|---|
@@ -63,7 +51,7 @@ One function is registered on script name `AcheronHunterPride`:
 | `OpenCustomMenu(string swfPathWithoutExt)` | Opens custom menu from `Data/Interface/<path>.swf`. Returns false if invalid path, file missing, or menu already open. |
 | `CloseCustomMenu()` | Closes custom menu (non-VR). |
 
-## Actor Helper Functions (`Acheron`)
+## Actor Helper Functions
 
 | Function | Behavior |
 |---|---|
@@ -73,7 +61,7 @@ One function is registered on script name `AcheronHunterPride`:
 | `GetFollowers()` | Returns follower actor list. |
 | `GetRaceType(Actor actor)` | Returns race type string used by consequence conditions. |
 
-## Object Reference Functions (`Acheron`)
+## Object Reference Functions
 
 | Function | Behavior |
 |---|---|
@@ -81,7 +69,7 @@ One function is registered on script name `AcheronHunterPride`:
 | `GetItemsByKeywords(ObjectReference container, Keyword[] keywords, int minValue, bool includeQuestItems)` | Returns forms matching filters. |
 | `RemoveAllItems(ObjectReference from, ObjectReference to, bool excludeWorn)` | Moves/removes items with runtime reason based on target type. |
 
-## Event Registration (`Acheron`)
+## Event Registration
 
 Registration helpers require a non-None receiver object. If receiver is `None`, registration traces and no-ops.
 
