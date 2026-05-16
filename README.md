@@ -1,13 +1,8 @@
 # Acheron
 
-A SKSE64 Death Alternative Framework for TESV Skyrim, allowing custom game over events to play in place of the vanilla "die and reload save" behaviour.
+A SKSE64 Death Alternative Framework for TESV Skyrim, sitting on top of native damage calcuations to create custom and extensible game over events, reducing the need to reload game saves upon losing in combat and adding new ways to interact with NPCs.
 
-Concretely, Acheron sits on top of the game's native damage calculations, allowing it to intercept and negate damage sources such as spell, weapon or physics damage. Should the player - or any NPC (configurable) - take lethal damage, Acheron will attempt to start a unique game over event and - if such an event is found and successfully started - negate any damage from the current source and end combat.  
-The concrete implementation of the game over is then handled by the started event, allowing a dynamic and open ended consequence system which can be freely expanded by independent authors.
-
-NPC's can also be processed by Acheron, which puts them into a special bleedout state (defeat). Interacting with such NPCs opens a menu which allows for special interactions with that NPC (such as resqueing or executing them). This system too can be freely expanded by independent authors. 
-
-For documentation on how to interact with this plugin see the [wiki](https://github.com/Scrabx3/Acheron-SKSE/wiki).  
+For documentation on how to interact with this plugin see the [wiki](https://krisv-777.github.io/Acheron/).  
 Alternative download mirror on [Nexus Mods](https://www.nexusmods.com/skyrimspecialedition/mods/108159).
 
 ## Requirements
