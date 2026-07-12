@@ -5,11 +5,17 @@ VirtualMachineAdapter:
   - Name: AcheronHunterPride
     Properties:
     - MutagenObjectType: ScriptObjectProperty
+      Name: ExecuteFaction
+      Object: 005910:Acheron.esm
+    - MutagenObjectType: ScriptObjectProperty
       Name: HealTargetFX
       Object: 00080B:Acheron.esm
     - MutagenObjectType: ScriptObjectProperty
       Name: IsEssentialMsg
       Object: 00080A:Acheron.esm
+    - MutagenObjectType: ScriptObjectProperty
+      Name: MCM
+      Object: 000800:Acheron.esm
     - MutagenObjectType: ScriptObjectProperty
       Name: NoPotionMsg
       Object: 000808:Acheron.esm

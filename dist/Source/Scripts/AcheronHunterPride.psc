@@ -2,11 +2,14 @@ Scriptname AcheronHunterPride extends Quest Hidden
 
 Function OpenHunterPrideMenu(Actor akTarget) native
 
+AcheronMCM Property MCM Auto
+
 PlayerVampireQuestScript Property PlayerVampireQuest Auto
 Activator Property HealTargetFX Auto
 Actor Property PlayerRef Auto
 Idle Property pa_HugA Auto
 
+Faction Property ExecuteFaction  Auto  
 Message Property IsEssentialMsg Auto
 Message Property NoPotionMsg Auto
 
@@ -16,7 +19,7 @@ Function OpenMenu(Actor akTarget)
 EndFunction
 
 Event OnHunterPrideSelect(int aiOptionID, Actor akTarget)
-  Debug.Trace("OnHunterPrideSelect: " + aiOptionID + " / " + akTarget)
+  Debug.Trace("[Acheron] OnHunterPrideSelect: " + aiOptionID + " / " + akTarget)
   If(aiOptionID == 0)
     Potion p = Acheron.GetMostEfficientPotion(akTarget, PlayerRef)
     If(!p)
@@ -37,8 +40,16 @@ Event OnHunterPrideSelect(int aiOptionID, Actor akTarget)
   ElseIf(aiOptionID == 2)
     If(CheckEssential(akTarget))
       return
-    ElseIf (SKSE.GetPluginVersion("OpenAnimationReplacer") == -1 || SKSE.GetPluginVersion("PairedAnimationImprovements") == -1)
-      Debug.Trace("'OpenAnimationReplacer' or 'PairedAnimationImprovements' not detected, skipping animation")
+    EndIf
+
+    akTarget.AddToFaction(ExecuteFaction)
+    If (SKSE.GetPluginVersion("OpenAnimationReplacer") == -1 || SKSE.GetPluginVersion("PairedAnimationImprovements") == -1)
+      String errMsg = "'OpenAnimationReplacer' or 'PairedAnimationImprovements' not detected, skipping animation"
+      Debug.Trace("[Acheron] " + errMsg)
+      Debug.MessageBox(errMsg)
+      akTarget.Kill(PlayerRef)
+      return
+    ElseIf (!MCM.GetSettingBool("bHunterPrideKillAnim"))
       akTarget.Kill(PlayerRef)
       return
     EndIf

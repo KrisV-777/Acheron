@@ -10,6 +10,7 @@ MCM_SETTING(iSurrenderKey, -1)
 MCM_SETTING(iHunterPrideKey, -1)
 MCM_SETTING(iHunterPrideKeyMod, -1)
 MCM_SETTING(bHunterPrideFollower, true)
+MCM_SETTING(bHunterPrideKillAnim, true)
 
 MCM_SETTING(bNotifyDefeat, false)
 MCM_SETTING(bNotifyDestroy, false)
