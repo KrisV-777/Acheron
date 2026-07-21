@@ -9,6 +9,14 @@
             "condition": "IsChild",
             "requiredVersion": "1.0.0.0",
             "negated": true
+        },
+        {
+            "condition": "IsInFaction",
+            "requiredVersion": "1.0.0.0",
+            "Faction": {
+                "pluginName": "Acheron.esm",
+                "formID": "0x910"
+            }
         }
     ],
     "pairedConditions": [
@@ -25,10 +33,6 @@
             "Faction": {
                 "pluginName": "Acheron.esm",
                 "formID": "0x910"
-            },
-            "Comparison": "==",
-            "Numeric value": {
-                "value": 1.0
             }
         }
     ]

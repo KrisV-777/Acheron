@@ -43,42 +43,34 @@ Event OnHunterPrideSelect(int aiOptionID, Actor akTarget)
     EndIf
 
     akTarget.AddToFaction(ExecuteFaction)
+    PlayerRef.AddToFaction(ExecuteFaction)
     If (SKSE.GetPluginVersion("OpenAnimationReplacer") == -1 || SKSE.GetPluginVersion("PairedAnimationImprovements") == -1)
       String errMsg = "'OpenAnimationReplacer' or 'PairedAnimationImprovements' not detected, skipping animation"
       Debug.Trace("[Acheron] " + errMsg)
       Debug.MessageBox(errMsg)
       akTarget.Kill(PlayerRef)
-      return
     ElseIf (!MCM.GetSettingBool("bHunterPrideKillAnim"))
       akTarget.Kill(PlayerRef)
-      return
+    Else
+      Game.ForceThirdPerson()
+      akTarget.SetHeadTracking(false)
+      PlayerRef.SetHeadTracking(false)
+      Float zOffset = PlayerRef.GetHeadingAngle(akTarget)
+      PlayerRef.SetAngle(0.0, 0.0, PlayerRef.GetAngleZ() + zOffset)
+      Utility.Wait(0.1)
+      If PlayerRef.IsWeaponDrawn()
+          PlayerRef.SheatheWeapon()
+          Float i = 3.0
+          While (PlayerRef.IsWeaponDrawn() && (i > 0.0))
+              Utility.Wait(0.1)
+              i -= 0.1
+          EndWhile
+      Endif
+      Debug.SendAnimationEvent(akTarget, "IdleForceDefaultState")
+      PlayerRef.playIdleWithTarget(pa_HugA, akTarget)
+      PlayerRef.SetHeadTracking(true)
     EndIf
-  
-    ;preparation
-    Game.ForceThirdPerson()
-    akTarget.SetHeadTracking(false)
-    PlayerRef.SetHeadTracking(false)
-    
-    ;move the player back
-    Float zOffset = PlayerRef.GetHeadingAngle(akTarget)
-    PlayerRef.SetAngle(0.0, 0.0, PlayerRef.GetAngleZ() + zOffset)
-    Utility.Wait(0.1)
-    
-    ;sheathe the weapon
-    If PlayerRef.IsWeaponDrawn()
-        PlayerRef.SheatheWeapon()
-        Float i = 3.0
-        While (PlayerRef.IsWeaponDrawn() && (i > 0.0))
-            Utility.Wait(0.1)
-            i -= 0.1
-        EndWhile
-    Endif
-    
-    ;bring the target from the bleedout to default state & play our animation
-    Debug.SendAnimationEvent(akTarget, "IdleForceDefaultState")
-    PlayerRef.playIdleWithTarget(pa_HugA, akTarget)
-    
-    PlayerRef.SetHeadTracking(true)
+    PlayerRef.RemoveFromFaction(ExecuteFaction)
   ElseIf(aiOptionID == 3)
     If(CheckEssential(akTarget))
       return
