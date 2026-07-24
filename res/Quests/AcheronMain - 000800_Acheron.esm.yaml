@@ -6,7 +6,7 @@ VirtualMachineAdapter:
     Properties:
     - MutagenObjectType: ScriptObjectProperty
       Name: ExecuteFaction
-      Object: 005910:Acheron.esm
+      Object: 000810:Acheron.esm
     - MutagenObjectType: ScriptObjectProperty
       Name: HealTargetFX
       Object: 00080B:Acheron.esm
