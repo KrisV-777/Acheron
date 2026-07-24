@@ -3,8 +3,8 @@
 #include "Acheron/Defeat.h"
 #include "Acheron/EventSink.h"
 #include "Acheron/Hooks/Processing.h"
-#include "Acheron/Validation.h"
 #include "Acheron/Misc.h"
+#include "Acheron/Validation.h"
 #include "shared/KrisV/Random.h"
 
 #include <xbyak/xbyak.h>

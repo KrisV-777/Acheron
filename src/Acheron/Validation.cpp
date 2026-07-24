@@ -1,8 +1,8 @@
 #include "Acheron/Validation.h"
 
 #include "Acheron/Misc.h"
-#include "shared/KrisV/Util/FormLookup.h"
 #include "shared/KrisV/Util/Actor.h"
+#include "shared/KrisV/Util/FormLookup.h"
 
 namespace Acheron
 {

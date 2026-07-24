@@ -1,6 +1,6 @@
 #include "ConditionParser.h"
-#include "EnumLookup.h"
 #include "./../Util/String.h"
+#include "EnumLookup.h"
 
 using namespace Conditions;
 
