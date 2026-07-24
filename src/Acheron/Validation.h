@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Conditions/Conditional.h"
+#include "shared/KrisV/Conditions/Conditional.h"
 
 namespace Acheron
 {

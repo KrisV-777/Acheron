@@ -4,6 +4,8 @@
 #include "Acheron/EventSink.h"
 #include "Acheron/Hooks/Processing.h"
 #include "Acheron/Validation.h"
+#include "Acheron/Misc.h"
+#include "shared/KrisV/Random.h"
 
 #include <xbyak/xbyak.h>
 

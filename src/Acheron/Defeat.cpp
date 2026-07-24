@@ -2,7 +2,7 @@
 
 #include "Acheron/EventSink.h"
 #include "Serialization/EventManager.h"
-#include "Util/Script.h"
+#include "shared/KrisV/Script.h"
 
 namespace Acheron
 {

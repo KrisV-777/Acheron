@@ -3,7 +3,7 @@
 #include "Acheron/Misc.h"
 #include "Acheron/Validation.h"
 #include "GameForms.h"
-#include "Util/Misc.h"
+#include "shared/KrisV/Util/Console.h"
 
 namespace Papyrus
 {

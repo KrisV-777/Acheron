@@ -1,6 +1,10 @@
+// Code originally from DAV (https://github.com/Exit-9B/DynamicArmorVariants)
+// Licensed under the MIT License (https://opensource.org/licenses/MIT)
+// The code has been modified and adapted for general use
+
 #pragma once
 
-#include "KrisV/Util/FormLookup.h"
+#include "./../Util/FormLookup.h"
 
 namespace Conditions
 {

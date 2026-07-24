@@ -13,8 +13,8 @@ namespace Conditions
       public:
         ConditionParser() = delete;
 
-        static RE::TESConditionItem* Parse(std::string_view a_text, const RefMap& a_refMap = {});
-        static std::shared_ptr<RE::TESCondition> ParseConditions(const std::vector<std::string>& a_rawConditions, const RefMap& a_refMap = {});
+        static RE::TESConditionItem* Parse(std::string_view a_text, const RefMap& a_refMap);
+        static std::shared_ptr<RE::TESCondition> ParseConditions(const std::vector<std::string>& a_rawConditions, const RefMap& a_refMap);
 
       private:
         union ConditionParam

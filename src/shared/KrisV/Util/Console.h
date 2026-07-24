@@ -27,21 +27,4 @@ namespace Util
         const auto msg = std::format(fmt, std::forward<Args>(args)...);
         RE::ConsoleLog::GetSingleton()->Print(msg);
     }
-
-    inline RE::TESActorBase* GetLeveledActorBase(RE::Actor* a_actor)
-    {
-        const auto base = a_actor->GetTemplateActorBase();
-        return base ? base : a_actor->GetActorBase();
-    }
-
-    // using _GetFormEditorID = const char* (*)(std::uint32_t);
-    // inline std::string GetEditorID(RE::TESForm* a_form)
-    // {
-    // 	static auto tweaks = GetModuleHandle("po3_Tweaks");
-    // 	static auto func = reinterpret_cast<_GetFormEditorID>(GetProcAddress(tweaks, "GetFormEditorID"));
-    // 	if (func) {
-    // 		return func(a_form->formID);
-    // 	}
-    // 	return {};
-    // }
 }

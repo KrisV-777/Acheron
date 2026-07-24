@@ -5,7 +5,7 @@
 #include "Acheron/Interface/CustomMenu.h"
 #include "Acheron/Interface/HunterPride.h"
 #include "Acheron/Resolution.h"
-#include "Util/StringUtil.h"
+#include "shared/KrisV/Util/String.h"
 
 namespace Papyrus
 {

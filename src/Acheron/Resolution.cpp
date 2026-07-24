@@ -2,9 +2,11 @@
 
 #include "Acheron/Animation/Animation.h"
 #include "Acheron/Defeat.h"
+#include "Acheron/Misc.h"
 #include "Acheron/Validation.h"
-#include "Util/FormLookup.h"
-#include "Util/StringUtil.h"
+#include "shared/KrisV/Random.h"
+#include "shared/KrisV/Util/FormLookup.h"
+#include "shared/KrisV/Util/String.h"
 
 namespace Acheron
 {

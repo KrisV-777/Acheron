@@ -1,8 +1,9 @@
 #include "Acheron/Interface/HunterPride.h"
 
 #include "Acheron/Interface/Interface.h"
+#include "Acheron/Misc.h"
 #include "Serialization/EventManager.h"
-#include "Util/FormLookup.h"
+#include "shared/KrisV/Util/FormLookup.h"
 
 namespace Acheron::Interface
 {

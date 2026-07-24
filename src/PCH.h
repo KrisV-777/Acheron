@@ -29,11 +29,7 @@ namespace fs = std::filesystem;
 using namespace std::literals;
 using json = nlohmann::json;
 
-#include "Acheron/Misc.h"
 #include "GameForms.h"
-#include "Util/Random.h"
-#include "Util/Singleton.h"
-
 #include "Serialization/Serialize.h"
 #include "Serialization/Settings.h"
 
@@ -47,7 +43,6 @@ static constexpr auto CONFIGPATH = [](std::string file) -> std::string { return 
 #define OFFSET(SE, AE) SE
 #endif
 
-using Serialize = Serialization::Serialize;
 namespace stl
 {
     using namespace SKSE::stl;

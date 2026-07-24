@@ -1,8 +1,10 @@
 #include "Acheron/Hooks/Processing.h"
 
 #include "Acheron/Defeat.h"
+#include "Acheron/Misc.h"
 #include "Acheron/Resolution.h"
 #include "Serialization/EventManager.h"
+#include "shared/KrisV/Random.h"
 
 namespace Acheron
 {

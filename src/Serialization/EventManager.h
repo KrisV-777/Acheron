@@ -1,5 +1,7 @@
 #pragma once
 
+#include "shared/KrisV/Singleton.h"
+
 namespace Serialization
 {
     class EventManager :
