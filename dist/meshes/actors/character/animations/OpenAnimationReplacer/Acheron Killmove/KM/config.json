@@ -15,7 +15,7 @@
             "requiredVersion": "1.0.0.0",
             "Faction": {
                 "pluginName": "Acheron.esm",
-                "formID": "0x910"
+                "formID": "0x810"
             }
         }
     ],
@@ -32,7 +32,7 @@
             "requiredVersion": "1.0.0.0",
             "Faction": {
                 "pluginName": "Acheron.esm",
-                "formID": "0x910"
+                "formID": "0x810"
             }
         }
     ]
