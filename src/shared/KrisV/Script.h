@@ -40,10 +40,13 @@ namespace Script
         return RE::BSScript::UnpackValue<T>(var);
     }
 
-    template <class T, typename = std::enable_if_t<std::is_integral_v<T> || std::is_floating_point_v<T>>>
-    inline T GetTrivialProperty(ObjectPtr a_obj, const RE::BSFixedString& a_prop)
+    template <class T, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
+    inline std::optional<T> GetTrivialPropertySave(ObjectPtr a_obj, const RE::BSFixedString& a_prop)
     {
         const auto var = a_obj->GetProperty(a_prop);
+        if (!var) {
+            return std::nullopt;
+        }
         const auto type = var->GetType().GetRawType();
         switch (type) {
         case RawType::kBool:
@@ -53,10 +56,16 @@ namespace Script
         case RawType::kFloat:
             return static_cast<T>(RE::BSScript::UnpackValue<float>(var));
         default:
-            logger::error("Not a trivial type: {}", std::to_underlying(type));
+            logger::error("Not a trivial type: {}", static_cast<int>(type));
             break;
         }
-        return 0;
+        return std::nullopt;
+    }
+
+    template <class T, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
+    inline T GetTrivialProperty(ObjectPtr a_obj, const RE::BSFixedString& a_prop)
+    {
+        return GetTrivialPropertySave<T>(a_obj, a_prop).value_or(T{});
     }
 
     template <class T>
