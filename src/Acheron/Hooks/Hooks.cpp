@@ -16,7 +16,6 @@ namespace Acheron
     void Hooks::Install()
     {
 #define VAR_OFFSET(SE, AE) REL::VariantOffset(SE, AE, SE)
-#define OFFSET(SE, AE) (REL::Module::IsAE() ? AE : SE)
 
         REL::Relocation<std::uintptr_t> phd{ REL::RelocationID(37633, 38586), VAR_OFFSET(0x76, 0x7e) };
         // MOV R13,RDX	; HitData* a_hitData
@@ -32,14 +31,14 @@ namespace Acheron
                 Xbyak::Label retPtr;
                 Xbyak::Label callPtr;
 
-                cmp(qword[rcx + OFFSET(0xf0, 0xf8)], 0);
+                cmp(qword[rcx + REL::Relocate(0xf0, 0xf8)], 0);
                 jz(retLbl);
 
                 call(ptr[rip + callPtr]);
                 test(al, al);
 
-                mov(rcx, OFFSET(r14, r15));
-                mov(rdx, OFFSET(r15, r13));
+                mov(rcx, REL::Relocate(r14, r15));
+                mov(rdx, REL::Relocate(r15, r13));
                 L(retLbl);
                 jmp(ptr[rip + retPtr]);
 
@@ -60,7 +59,7 @@ namespace Acheron
         trampoline.write_branch<5>(phd.address(), patchDst);
         REL::safe_fill(phd.address() + 5, 0x90, 3);
         // ==================================================
-        REL::Relocation<std::uintptr_t> magichit{ REL::RelocationID(33763, 34547), VAR_OFFSET(0x52F, 0x7B1) };
+        REL::Relocation<std::uintptr_t> magichit{ REL::RelocationID(33763, 34547), REL::VariantOffset(0x52F, 0x7B1, 0x4B1) };
         _MagicHit = trampoline.write_call<5>(magichit.address(), MagicHit);
         // ==================================================
         REL::Relocation<std::uintptr_t> mha{ REL::RelocationID(33742, 34526), VAR_OFFSET(0x1E8, 0x20B) };
@@ -76,15 +75,14 @@ namespace Acheron
         _FallAndPhysicsDamage = trampoline.write_call<5>(movefinish.address(), FallAndPhysicsDamage<true>);
         // ==================================================
         REL::Relocation<std::uintptr_t> plu{ RE::PlayerCharacter::VTABLE[0] };
-        _PlUpdate = plu.write_vfunc(0xAD, UpdatePlayer);
+        _PlUpdate = plu.write_vfunc(REL::Relocate(0xAD, 0xAD, 0xAF), UpdatePlayer);
         // ==================================================
         REL::Relocation<std::uintptr_t> char_vt{ RE::Character::VTABLE[0] };
         _Load3D = char_vt.write_vfunc(0x6A, Load3D);
-        _UpdateCombat = char_vt.write_vfunc(0xE4, UpdateCombat);
-        _UpdateCharacter = char_vt.write_vfunc(0xAD, UpdateCharacter);
+        _UpdateCombat = char_vt.write_vfunc(REL::Relocate(0xE4, 0xE4, 0xE6), UpdateCombat);
+        _UpdateCharacter = char_vt.write_vfunc(REL::Relocate(0xAD, 0xAD, 0xAF), UpdateCharacter);
 
 #undef VAR_OFFSET
-#undef OFFSET
         logger::info("Hooks installed");
     }
 
