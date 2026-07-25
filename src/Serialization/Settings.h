@@ -28,7 +28,7 @@ struct Settings
 
     // Quick Access Funcs
     static bool DoesPlayerAutoRecover()
-    { 
+    {
         return iKdFallbackTimer || fKdHealthThresh && RE::PlayerCharacter::GetSingleton()->AsActorValueOwner()->GetActorValue(RE::ActorValue::kHealRate);
     }
 };
