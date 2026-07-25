@@ -26,7 +26,7 @@ namespace Acheron
 
     void Defeat::DefeatActor(RE::Actor* a_victim)
     {
-        const auto state = a_victim->GetLifeState();
+        const auto state = a_victim->AsActorState()->GetLifeState();
         if (state == RE::ACTOR_LIFE_STATE::kDying || state == RE::ACTOR_LIFE_STATE::kDead) {
             logger::error("{:X} ({}) is dead and cannot be defeated", a_victim->GetFormID(), a_victim->GetDisplayFullName());
             return;
@@ -56,7 +56,7 @@ namespace Acheron
             PacifyUnsafe(a_victim);
         } else {
             if (a_victim->IsPlayerTeammate()) {
-                a_victim->SetActorValue(RE::ActorValue::kWaitingForPlayer, 1);
+                a_victim->AsActorValueOwner()->SetActorValue(RE::ActorValue::kWaitingForPlayer, 1);
             }
             PacifyUnsafe(a_victim);
             Script::CallbackPtr callback(new PackageOverrideCallback(a_victim));
@@ -65,14 +65,8 @@ namespace Acheron
             }
         }
 
-#ifdef SKYRIM_SUPPORT_VR
         a_victim->GetActorRuntimeData().boolFlags.set(RE::Actor::BOOL_FLAGS::kNoBleedoutRecovery);
         const auto& process = a_victim->GetActorRuntimeData().currentProcess;
-#else
-        a_victim->boolFlags.set(RE::Actor::BOOL_FLAGS::kNoBleedoutRecovery);
-        const auto& process = a_victim->currentProcess;
-#endif
-
         if (a_victim->Is3DLoaded()) {
             if (process) {
                 process->PlayIdle(a_victim, GameForms::BleedoutStart, nullptr);
@@ -88,8 +82,8 @@ namespace Acheron
                 }
             }
         }
-        const auto health = a_victim->GetActorValue(RE::ActorValue::kHealth);
-        a_victim->RestoreActorValue(RE::ActorValue::kHealth, -health + 0.05f);
+        const auto health = a_victim->AsActorValueOwner()->GetActorValue(RE::ActorValue::kHealth);
+        a_victim->AsActorValueOwner()->RestoreActorValue(RE::ActorValue::kHealth, -health + 0.05f);
 
         data->state.store(VictimState::Defeated);
 
@@ -131,7 +125,7 @@ namespace Acheron
             a_victim->RemoveAnimationGraphEventSink(EventHandler::GetSingleton());
         } else {
             if (a_victim->IsPlayerTeammate()) {
-                a_victim->SetActorValue(RE::ActorValue::kWaitingForPlayer, 0);
+                a_victim->AsActorValueOwner()->SetActorValue(RE::ActorValue::kWaitingForPlayer, 0);
             }
             Script::CallbackPtr callback(new PackageOverrideCallback(a_victim));
             if (!Script::DispatchStaticCall("ActorUtil", "RemovePackageOverride", callback, std::move(a_victim), std::move(GameForms::BlankPackage))) {
@@ -140,16 +134,9 @@ namespace Acheron
         }
 
 
-#ifdef SKYRIM_SUPPORT_VR
         a_victim->GetActorRuntimeData().boolFlags.reset(RE::Actor::BOOL_FLAGS::kNoBleedoutRecovery);
-        const auto& process = a_victim->GetActorRuntimeData().currentProcess;
-#else
-        a_victim->boolFlags.reset(RE::Actor::BOOL_FLAGS::kNoBleedoutRecovery);
-        const auto& process = a_victim->currentProcess;
-#endif
-
         if (a_victim->Is3DLoaded() && !a_victim->IsDead()) {
-            if (process) {
+            if (const auto& process = a_victim->GetActorRuntimeData().currentProcess) {
                 process->PlayIdle(a_victim, GameForms::BleedoutStop, a_victim);
             } else {
                 a_victim->NotifyAnimationGraph("BleedoutStop");
@@ -190,7 +177,7 @@ namespace Acheron
 
     void Defeat::Pacify(RE::Actor* a_victim)
     {
-        const auto state = a_victim->GetLifeState();
+        const auto state = a_victim->AsActorState()->GetLifeState();
         if (state == RE::ACTOR_LIFE_STATE::kDying || state == RE::ACTOR_LIFE_STATE::kDead) {
             logger::error("{:X} ({}) is dead and cannot be pacified", a_victim->GetFormID(), a_victim->GetDisplayFullName());
             return;

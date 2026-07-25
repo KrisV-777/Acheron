@@ -15,7 +15,10 @@ namespace Acheron
 {
     void Hooks::Install()
     {
-        REL::Relocation<std::uintptr_t> phd{ RELID(37633, 38586), OFFSET(0x76, 0x7e) };
+#define VAR_OFFSET(SE, AE) REL::VariantOffset(SE, AE, SE)
+#define OFFSET(SE, AE) (REL::Module::IsAE() ? AE : SE)
+
+        REL::Relocation<std::uintptr_t> phd{ REL::RelocationID(37633, 38586), VAR_OFFSET(0x76, 0x7e) };
         // MOV R13,RDX	; HitData* a_hitData
         // MOV R15,RCX	; Actor* a_target
         // ...
@@ -57,19 +60,19 @@ namespace Acheron
         trampoline.write_branch<5>(phd.address(), patchDst);
         REL::safe_fill(phd.address() + 5, 0x90, 3);
         // ==================================================
-        REL::Relocation<std::uintptr_t> magichit{ RELID(33763, 34547), OFFSET(0x52F, 0x7B1) };
+        REL::Relocation<std::uintptr_t> magichit{ REL::RelocationID(33763, 34547), VAR_OFFSET(0x52F, 0x7B1) };
         _MagicHit = trampoline.write_call<5>(magichit.address(), MagicHit);
         // ==================================================
-        REL::Relocation<std::uintptr_t> mha{ RELID(33742, 34526), OFFSET(0x1E8, 0x20B) };
+        REL::Relocation<std::uintptr_t> mha{ REL::RelocationID(33742, 34526), VAR_OFFSET(0x1E8, 0x20B) };
         _DoesMagicHitApply = trampoline.write_call<5>(mha.address(), DoesMagicHitApply);
         // ==================================================
-        REL::Relocation<std::uintptr_t> det{ RELID(41659, 42742), OFFSET(0x526, 0x67B) };
+        REL::Relocation<std::uintptr_t> det{ REL::RelocationID(41659, 42742), VAR_OFFSET(0x526, 0x67B) };
         _DoDetect = trampoline.write_call<5>(det.address(), DoDetect);
         // ==================================================
-        REL::Relocation<std::uintptr_t> ragdoll_dmg{ RELOCATION_ID(36346, 37336), 0x35 };
+        REL::Relocation<std::uintptr_t> ragdoll_dmg{ REL::RelocationID(36346, 37336), 0x35 };
         _FallAndPhysicsDamage = trampoline.write_call<5>(ragdoll_dmg.address(), FallAndPhysicsDamage<false>);
         // ==================================================
-        REL::Relocation<std::uintptr_t> movefinish{ RELOCATION_ID(36973, 37998), OFFSET(0xAE, 0xAB) };
+        REL::Relocation<std::uintptr_t> movefinish{ REL::RelocationID(36973, 37998), VAR_OFFSET(0xAE, 0xAB) };
         _FallAndPhysicsDamage = trampoline.write_call<5>(movefinish.address(), FallAndPhysicsDamage<true>);
         // ==================================================
         REL::Relocation<std::uintptr_t> plu{ RE::PlayerCharacter::VTABLE[0] };
@@ -80,6 +83,8 @@ namespace Acheron
         _UpdateCombat = char_vt.write_vfunc(0xE4, UpdateCombat);
         _UpdateCharacter = char_vt.write_vfunc(0xAD, UpdateCharacter);
 
+#undef VAR_OFFSET
+#undef OFFSET
         logger::info("Hooks installed");
     }
 
@@ -87,12 +92,7 @@ namespace Acheron
     {
         _PlUpdate(a_player, a_delta);
 
-#ifdef SKYRIM_SUPPORT_VR
         const auto plFlags = a_player->GetPlayerRuntimeData().playerFlags;
-#else
-        const auto plFlags = a_player->playerFlags;
-#endif
-
         static bool __combat = plFlags.isInCombat;
         if (__combat != plFlags.isInCombat) {
             __combat = plFlags.isInCombat;
@@ -140,22 +140,13 @@ namespace Acheron
             if (data->mark_for_recovery && data->allow_recovery && Settings::bNPCRescueReload) {
                 // isLoading is true when loading from a prev location / is false when loading save
                 const auto player = RE::PlayerCharacter::GetSingleton();
-#ifdef SKYRIM_SUPPORT_VR
                 const auto plFlags = player->GetPlayerRuntimeData().playerFlags;
-#else
-                const auto plFlags = player->playerFlags;
-#endif
                 if (plFlags.isLoading) {
                     Defeat::RescueActor(&a_this, true);
                     return ret;
                 }
             }
-#ifdef SKYRIM_SUPPORT_VR
-            const auto process = a_this.GetActorRuntimeData().currentProcess;
-#else
-            const auto process = a_this.currentProcess;
-#endif
-            if (process) {
+            if (const auto process = a_this.GetActorRuntimeData().currentProcess) {
                 process->PlayIdle(&a_this, GameForms::BleedoutStart, &a_this);
             } else {
                 a_this.NotifyAnimationGraph("BleedoutStart");
@@ -203,12 +194,8 @@ namespace Acheron
 
     void Hooks::CalcDamageOverTime(RE::Actor* a_target)
     {
-#ifdef SKYRIM_SUPPORT_VR
         const auto magicTarget = a_target->AsMagicTarget();
         const auto effects = magicTarget ? magicTarget->GetActiveEffectList() : nullptr;
-#else
-        const auto effects = a_target->GetActiveEffectList();
-#endif
         if (!effects)
             return;
 
@@ -229,7 +216,7 @@ namespace Acheron
                 inc_damage += change / 20;  // damage value is per second
             }
         }
-        if (inc_damage < 0 && a_target->GetActorValue(RE::ActorValue::kHealth) <= fabs(inc_damage)) {
+        if (inc_damage < 0 && a_target->AsActorValueOwner()->GetActorValue(RE::ActorValue::kHealth) <= fabs(inc_damage)) {
             auto aggressor = Processing::AggressorInfo(nullptr, a_target);
             if (!Validation::ValidatePair(a_target, aggressor.actor))
                 return;
@@ -260,7 +247,7 @@ namespace Acheron
         if (!Validation::ValidatePair(a_target, aggressor))
             return HitResult::Allow;
 
-        const float hp = a_target->GetActorValue(RE::ActorValue::kHealth);
+        const float hp = a_target->AsActorValueOwner()->GetActorValue(RE::ActorValue::kHealth);
         auto dmg = a_hitData.totalDamage + fabs(GetIncomingEffectDamage(a_target));
         AdjustByDifficultyMult(dmg, a_target->IsPlayerRef());
         bool negate;
@@ -311,7 +298,10 @@ namespace Acheron
 
     void Hooks::MagicHit(uint64_t* unk1, RE::ActiveEffect& effect, uint64_t* unk3, uint64_t* unk4, uint64_t* unk5)
     {
-        const auto target = effect.GetTargetActor();
+        const auto target = [&effect]() {
+            const auto obj = effect.target ? effect.target->GetTargetStatsObject() : nullptr;
+            return obj ? obj->As<RE::Actor>() : nullptr;
+        }();
         const auto& base = effect.effect ? effect.effect->baseEffect : nullptr;
         if (!target || !base || target->IsCommandedActor() || !IsNPC(target))
             return _MagicHit(unk1, effect, unk3, unk4, unk5);
@@ -344,7 +334,7 @@ namespace Acheron
                 if (!Validation::ValidatePair(target, caster.actor))
                     break;
 
-                const float health = target->GetActorValue(RE::ActorValue::kHealth);
+                const float health = target->AsActorValueOwner()->GetActorValue(RE::ActorValue::kHealth);
                 float dmg = base->data.secondaryAV == RE::ActorValue::kHealth ? effect.magnitude * base->data.secondAVWeight : effect.magnitude;
                 dmg += GetIncomingEffectDamage(target);  // + GetTaperDamage(effect.magnitude, data->data);
                 AdjustByDifficultyMult(dmg, target->IsPlayerRef());
@@ -382,7 +372,10 @@ namespace Acheron
 
     bool Hooks::DoesMagicHitApply(RE::MagicTarget* a_target, RE::MagicTarget::AddTargetData* a_data)
     {
-        const auto target = a_target->MagicTargetIsActor() ? static_cast<RE::Actor*>(a_target) : nullptr;
+        const auto target = [&a_target]() {
+            const auto obj = a_target->GetTargetStatsObject();
+            return obj ? obj->As<RE::Actor>() : nullptr;
+        }();
         if (target && !target->IsDead() && Defeat::IsDamageImmune(target)) {
             auto spell = a_data ? a_data->magicItem : nullptr;
             if (!spell)
@@ -406,7 +399,7 @@ namespace Acheron
             return dmg;
         float adj_dmg = dmg;
         AdjustByDifficultyMult(adj_dmg, a_this->IsPlayerRef(), MoveFinish);
-        const float hp = a_this->GetActorValue(RE::ActorValue::kHealth);
+        const float hp = a_this->AsActorValueOwner()->GetActorValue(RE::ActorValue::kHealth);
         if (adj_dmg < hp)
             return dmg;
         if (!Validation::CanProcessDamage() || Defeat::IsDamageImmune(a_this))
@@ -452,11 +445,7 @@ namespace Acheron
         if (a_victim->IsPlayerTeammate())
             return Random::draw<float>(0, 99.5f) < Settings::fLethalFollower;
 
-#ifdef SKYRIM_SUPPORT_VR
         const auto& flags = a_victim->GetActorRuntimeData().boolFlags;
-#else
-        const auto& flags = a_victim->boolFlags;
-#endif
         if (Settings::bLethalEssential && (flags.all(Flag::kEssential) || !(a_aggressor && a_aggressor->IsPlayerRef()) && flags.all(Flag::kProtected)))
             return true;
 
@@ -472,11 +461,7 @@ namespace Acheron
                 auto kwd = e->As<RE::BGSKeywordForm>();
                 if (kwd && kwd->ContainsKeywordString("NoStrip"))
                     continue;
-#ifdef SKYRIM_SUPPORT_VR
                 occupied += e->GetSlotMask().underlying();
-#else
-                occupied += static_cast<uint32_t>(e->GetSlotMask());
-#endif
             }
             constexpr auto ign{ (1U << 1) + (1U << 5) + (1U << 6) + (1U << 9) + (1U << 11) + (1U << 12) + (1U << 13) + (1U << 15) + (1U << 20) + (1U << 21) + (1U << 31) };
             auto t = std::popcount(occupied & (~ign));
@@ -489,12 +474,8 @@ namespace Acheron
 
     float Hooks::GetIncomingEffectDamage(RE::Actor* subject)
     {
-#ifdef SKYRIM_SUPPORT_VR
         const auto magicTarget = subject->AsMagicTarget();
         const auto effects = magicTarget ? magicTarget->GetActiveEffectList() : nullptr;
-#else
-        const auto effects = subject->GetActiveEffectList();
-#endif
         if (!effects)
             return 0.0f;
 
@@ -539,20 +520,11 @@ namespace Acheron
     void Hooks::AdjustByDifficultyMult(float& damage, const bool playerPOV, const bool onlyReduce)
     {
         const auto s = RE::GetINISetting("iDifficulty:GamePlay");
-#ifdef SKYRIM_SUPPORT_VR
         if (s->GetType() != RE::Setting::Type::kInteger)
             return;
-#else
-        if (s->GetType() != RE::Setting::Type::kSignedInteger)
-            return;
-#endif
 
         std::string diff{ "fDiffMultHP"s + (playerPOV ? "ToPC"s : "ByPC"s) };
-#ifdef SKYRIM_SUPPORT_VR
         switch (s->GetInteger()) {
-#else
-        switch (s->GetSInt()) {
-#endif
         case 0:
             diff.append("VE");
             break;

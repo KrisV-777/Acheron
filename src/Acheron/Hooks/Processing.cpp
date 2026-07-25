@@ -166,7 +166,8 @@ namespace Acheron
 
     void Processing::RemoveDamagingSpells(RE::Actor* subject)
     {
-        auto effects = subject->GetActiveEffectList();
+        const auto magicTarget = subject->AsMagicTarget();
+        const auto effects = magicTarget ? magicTarget->GetActiveEffectList() : nullptr;
         if (!effects)
             return;
 
@@ -222,11 +223,7 @@ namespace Acheron
             if (actor->IsHostileToActor(a_victim)) {
                 return true;
             }
-#ifdef SKYRIM_SUPPORT_VR
             const auto target = actor->GetActorRuntimeData().currentCombatTarget.get();
-#else
-            const auto target = actor->currentCombatTarget.get();
-#endif
             return target ? target.get() == a_victim || !target->IsHostileToActor(a_victim) || a_victim->IsPlayerRef() && target->IsPlayerTeammate() : false;
         };
 

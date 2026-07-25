@@ -13,6 +13,11 @@ static void SKSEMessageHandler(SKSE::MessagingInterface::Message* message)
     switch (message->type) {
     case SKSE::MessagingInterface::kPostLoad:
         Acheron::Hooks::Install();
+
+        if (!REL::Module::IsVR()) {
+            Acheron::Interface::HunterPride::Register();
+            Acheron::Interface::CustomMenu::Register();
+        }
         break;
     case SKSE::MessagingInterface::kSaveGame:
         Settings::Save();
@@ -102,11 +107,6 @@ extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Load(const SKSE::LoadInterface* a_s
         logger::critical("Failed to register Listener");
         return false;
     }
-
-#ifndef SKYRIM_SUPPORT_VR
-    Acheron::Interface::HunterPride::Register();
-    Acheron::Interface::CustomMenu::Register();
-#endif
 
     const auto serialization = SKSE::GetSerializationInterface();
     serialization->SetUniqueID('achr');

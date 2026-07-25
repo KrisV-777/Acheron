@@ -39,9 +39,10 @@ namespace Acheron
 
     float GetAVPercent(RE::Actor* a_actor, RE::ActorValue a_av)
     {
+        const auto actorValueOwner = a_actor->AsActorValueOwner();
         float tempAV = a_actor->GetActorValueModifier(RE::ACTOR_VALUE_MODIFIER::kTemporary, a_av);
-        float totalAV = a_actor->GetPermanentActorValue(a_av) + tempAV;
-        float currentAV = a_actor->GetActorValue(a_av);
+        float totalAV = actorValueOwner->GetPermanentActorValue(a_av) + tempAV;
+        float currentAV = actorValueOwner->GetActorValue(a_av);
         return totalAV > 0 ? currentAV / totalAV : currentAV;
     }
 
@@ -55,11 +56,7 @@ namespace Acheron
             }
             const auto item = data.second.get()->GetObject()->As<RE::TESObjectARMO>();
             if (a_ignoredmasks) {
-#ifdef SKYRIM_SUPPORT_VR
                 const auto slots = item->GetSlotMask().underlying();
-#else
-                const auto slots = static_cast<uint32_t>(item->GetSlotMask());
-#endif
                 // sort out items which have no enabled slots (dont throw out if at least 1 slot matches)
                 if ((slots & a_ignoredmasks) == 0)
                     continue;
@@ -83,7 +80,7 @@ namespace Acheron
 
     bool IsHunter(RE::Actor* a_actor)
     {
-        return a_actor->HasMagicEffect(GameForms::HunterPrideEffect);
+        return a_actor->AsMagicTarget()->HasMagicEffect(GameForms::HunterPrideEffect);
     }
 
     bool UsesHunterPride(const RE::Actor* a_actor)
@@ -108,11 +105,11 @@ namespace Acheron
     // Probably someone will find it useful.Didn't find it in clib. to call it :
     // 	auto idle = RE::TESForm::LookupByID<RE::TESIdleForm>(0x6440c);
     // PlayIdle(attacker->currentProcess, attacker, RE::DEFAULT_OBJECT::kActionIdle, idle, true, false, victim);
-    bool PlayIdle(RE::AIProcess* proc, RE::Actor* attacker, RE::DEFAULT_OBJECT smth, RE::TESIdleForm* idle, bool a5, bool a6, RE::TESObjectREFR* target)
-    {
-        using func_t = decltype(&PlayIdle);
-        REL::Relocation<func_t> func{ RELID(38290, 38290) };  // TODO: AE RELID
-        return func(proc, attacker, smth, idle, a5, a6, target);
-    }
+    // bool PlayIdle(RE::AIProcess* proc, RE::Actor* attacker, RE::DEFAULT_OBJECT smth, RE::TESIdleForm* idle, bool a5, bool a6, RE::TESObjectREFR* target)
+    // {
+    //     using func_t = decltype(&PlayIdle);
+    //     REL::Relocation<func_t> func{ REL::RelocationID(38290, 38290) };  // TODO: AE RELID
+    //     return func(proc, attacker, smth, idle, a5, a6, target);
+    // }
 
 }  // namespace Acheron
