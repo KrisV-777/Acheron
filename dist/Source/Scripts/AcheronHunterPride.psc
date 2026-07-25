@@ -55,18 +55,16 @@ Event OnHunterPrideSelect(int aiOptionID, Actor akTarget)
       Game.ForceThirdPerson()
       akTarget.SetHeadTracking(false)
       PlayerRef.SetHeadTracking(false)
-      Float zOffset = PlayerRef.GetHeadingAngle(akTarget)
-      PlayerRef.SetAngle(0.0, 0.0, PlayerRef.GetAngleZ() + zOffset)
-      Utility.Wait(0.1)
+      Float zOffset = akTarget.GetHeadingAngle(PlayerRef)
+      akTarget.SetAngle(0.0, 0.0, akTarget.GetAngleZ() + zOffset + 180.0)
       If PlayerRef.IsWeaponDrawn()
           PlayerRef.SheatheWeapon()
-          Float i = 3.0
+          float i = 3.0
           While (PlayerRef.IsWeaponDrawn() && (i > 0.0))
               Utility.Wait(0.1)
-              i -= 0.1
+              i -= 0.15
           EndWhile
       Endif
-      Debug.SendAnimationEvent(akTarget, "IdleForceDefaultState")
       PlayerRef.playIdleWithTarget(pa_HugA, akTarget)
       PlayerRef.SetHeadTracking(true)
     EndIf
