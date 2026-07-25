@@ -61,15 +61,15 @@ static void SKSEMessageHandler(SKSE::MessagingInterface::Message* message)
 
 extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Load(const SKSE::LoadInterface* a_skse)
 {
-    constexpr auto PLUGIN_NAME = "Acheron";
-    const auto InitLogger = []() -> bool {
+    const auto plugin = SKSE::PluginDeclaration::GetSingleton();
+    const auto InitLogger = [&plugin]() -> bool {
 #ifndef NDEBUG
         auto sink = std::make_shared<spdlog::sinks::msvc_sink_mt>();
 #else
         auto path = logger::log_directory();
         if (!path)
             return false;
-        *path /= std::format("{}.log", PLUGIN_NAME);
+        *path /= std::format("{}.log", plugin->GetName());
         auto sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(path->string(), true);
 #endif
         auto log = std::make_shared<spdlog::logger>("global log"s, std::move(sink));
@@ -86,8 +86,11 @@ extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Load(const SKSE::LoadInterface* a_s
 #else
         spdlog::set_pattern("[%T] [%^%l%$] %v"s);
 #endif
+
+        logger::info("{} v{}", plugin->GetName(), plugin->GetVersion());
         return true;
     };
+
     if (a_skse->IsEditor()) {
         logger::critical("Loaded in editor, marking as incompatible");
         return false;
