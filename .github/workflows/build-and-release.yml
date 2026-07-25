@@ -264,6 +264,8 @@ jobs:
           $ErrorActionPreference = 'Stop'
           $projectVersion = '${{ needs.project-version.outputs.project_version }}'
           $artifactName = "Acheron - v$projectVersion"
+          $releaseDir = Join-Path $env:GITHUB_WORKSPACE "release"
+          New-Item -ItemType Directory -Path $releaseDir -Force | Out-Null
 
           $packRoot = Join-Path $env:RUNNER_TEMP ("pack-" + $artifactName.Replace('.', '-'))
           if (Test-Path $packRoot) {
@@ -287,11 +289,11 @@ jobs:
           Copy-Item -Path dist/SKSE/Acheron/* -Destination (Join-Path $packRoot 'SKSE/Acheron') -Recurse -Force
           Copy-Item -Path dist/SKSE/CustomConsole/* -Destination (Join-Path $packRoot 'SKSE/CustomConsole') -Recurse -Force
 
-          $archivePath = Join-Path $env:GITHUB_WORKSPACE ("release/$artifactName.zip")
+          $archivePath = Join-Path $releaseDir "$artifactName.zip"
           if (Test-Path $archivePath) {
             Remove-Item -Path $archivePath -Force
           }
-          Compress-Archive -Path "$packRoot/*" -DestinationPath $archivePath -Force
+          Compress-Archive -Path (Join-Path $packRoot '*') -DestinationPath $archivePath -Force
 
           "artifact_name=$artifactName" >> $env:GITHUB_OUTPUT
 
