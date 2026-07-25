@@ -37,10 +37,10 @@ jobs:
           }
 
           $projectVersion = $match.Groups[1].Value
-          write-host "Resolved project version: $projectVersion"
+          Write-Host "Resolved project version: $projectVersion"
           "project_version=$projectVersion" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
 
-  compile-papyrus:
+  build-papyrus:
     name: Compile Papyrus scripts
     runs-on: windows-latest
     timeout-minutes: 20
@@ -137,7 +137,7 @@ jobs:
           name: compiled-papyrus
           path: dist/Scripts
 
-  compile-esm:
+  build-esm:
     name: Build Acheron.esm
     runs-on: windows-latest
     timeout-minutes: 15
@@ -176,7 +176,7 @@ jobs:
           name: built-esm
           path: dist/Acheron.esm
 
-  compile-dll:
+  build-dll:
     name: Build DLL
     timeout-minutes: 30
     runs-on: windows-latest
@@ -184,7 +184,7 @@ jobs:
       run:
         shell: pwsh
     outputs:
-      artifact_name: ${{ steps.stage.outputs.artifact_name }}
+      artifact_name: ${{ steps.build.outputs.artifact_name }}
 
     steps:
       - name: Checkout
@@ -206,7 +206,7 @@ jobs:
         run: xmake -b -y Acheron
 
       - name: Stage DLL files
-        id: stage
+        id: build
         run: |
           $ErrorActionPreference = 'Stop'
           New-Item -ItemType Directory -Path out/dll -Force | Out-Null
@@ -219,7 +219,7 @@ jobs:
       - name: Upload DLL artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ steps.stage.outputs.artifact_name }}
+          name: ${{ steps.build.outputs.artifact_name }}
           path: out/dll
           if-no-files-found: error
 
@@ -227,9 +227,9 @@ jobs:
     name: Package Release Artifacts
     needs:
       - project-version
-      - compile-papyrus
-      - compile-esm
-      - compile-dll
+      - build-papyrus
+      - build-esm
+      - build-dll
     runs-on: windows-latest
     timeout-minutes: 20
     outputs:
@@ -254,7 +254,7 @@ jobs:
       - name: Download DLL
         uses: actions/download-artifact@v4
         with:
-          name: ${{ needs.compile-dll.outputs.artifact_name }}
+          name: ${{ needs.build-dll.outputs.artifact_name }}
           path: artifacts/built-dll
 
       - name: Build release archives
