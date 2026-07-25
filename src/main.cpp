@@ -118,7 +118,7 @@ extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Load(const SKSE::LoadInterface* a_s
     serialization->SetRevertCallback(Serialization::Serialize::RevertCallback);
     serialization->SetFormDeleteCallback(Serialization::Serialize::FormDeleteCallback);
 
-    logger::info("{} loaded", PLUGIN_NAME);
+    logger::info("{} loaded", plugin->GetName());
 
     return true;
 }
