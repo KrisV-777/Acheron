@@ -406,7 +406,7 @@ namespace Acheron
             return dmg;
         if (a_this->IsPlayerRef() && RE::PlayerCharacter::GetSingleton()->IsGodMode())
             return dmg;
-        if (a_this->HasEffectWithArchetype(RE::MagicTarget::Archetype::kEtherealize))
+        if (a_this->AsMagicTarget()->HasEffectWithArchetype(RE::MagicTarget::Archetype::kEtherealize))
             return dmg;
         auto aggressor = Processing::AggressorInfo(nullptr, a_this);
         return Processing::RegisterDefeat(a_this, aggressor) ? 0.0f : dmg;
