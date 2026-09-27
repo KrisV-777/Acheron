@@ -2,7 +2,7 @@ set_xmakever("3.1.1")
 
 -- Globals
 PROJECT_NAME = "Acheron"
-PROJECT_VERSION = "1.12.0"
+PROJECT_VERSION = "1.12.1"
 
 -- Project
 set_project(PROJECT_NAME)
