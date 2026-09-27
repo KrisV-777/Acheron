@@ -273,26 +273,40 @@ jobs:
           }
           New-Item -ItemType Directory -Path $packRoot -Force | Out-Null
 
-          New-Item -ItemType Directory -Path (Join-Path $packRoot 'Scripts') -Force | Out-Null
-          New-Item -ItemType Directory -Path (Join-Path $packRoot 'Source/Scripts') -Force | Out-Null
-          New-Item -ItemType Directory -Path (Join-Path $packRoot 'SKSE/Plugins') -Force | Out-Null
-          New-Item -ItemType Directory -Path (Join-Path $packRoot 'SKSE/CustomConsole') -Force | Out-Null
-          New-Item -ItemType Directory -Path (Join-Path $packRoot 'SKSE/Acheron') -Force | Out-Null
+          @(
+            'Scripts'
+            'Source/Scripts'
+            'SKSE/Plugins'
+            'SKSE/CustomConsole'
+            'SKSE/Acheron'
+            'meshes'
+          ) | ForEach-Object {
+            New-Item -ItemType Directory -Path (Join-Path $packRoot $_) -Force | Out-Null
+          }
 
-          Copy-Item -Path artifacts/compiled-papyrus/* -Destination (Join-Path $packRoot 'Scripts') -Recurse -Force
-          Copy-Item -Path artifacts/built-esm/Acheron.esm -Destination (Join-Path $packRoot 'Acheron.esm') -Force
-          Copy-Item -Path artifacts/built-dll/* -Destination (Join-Path $packRoot 'SKSE/Plugins') -Recurse -Force
-          
-          # Static dist assets (committed to repo)
-          Copy-Item -Path dist/Interface -Destination (Join-Path $packRoot 'Interface') -Recurse -Force
-          Copy-Item -Path dist/Source/Scripts/* -Destination (Join-Path $packRoot 'Source/Scripts') -Recurse -Force
-          Copy-Item -Path dist/SKSE/Acheron/* -Destination (Join-Path $packRoot 'SKSE/Acheron') -Recurse -Force
-          Copy-Item -Path dist/SKSE/CustomConsole/* -Destination (Join-Path $packRoot 'SKSE/CustomConsole') -Recurse -Force
+          $copyMap = @(
+            @{ Source = 'artifacts/compiled-papyrus/*'; Destination = 'Scripts'; Recurse = $true }
+            @{ Source = 'artifacts/built-esm/Acheron.esm'; Destination = 'Acheron.esm'; Recurse = $false }
+            @{ Source = 'artifacts/built-dll/*'; Destination = 'SKSE/Plugins'; Recurse = $true }
+            # Static dist assets (committed to repo)
+            @{ Source = 'dist/Interface'; Destination = 'Interface'; Recurse = $true }
+            @{ Source = 'dist/Source/Scripts/*'; Destination = 'Source/Scripts'; Recurse = $true }
+            @{ Source = 'dist/SKSE/Acheron/*'; Destination = 'SKSE/Acheron'; Recurse = $true }
+            @{ Source = 'dist/SKSE/CustomConsole/*'; Destination = 'SKSE/CustomConsole'; Recurse = $true }
+            @{ Source = 'dist/meshes'; Destination = 'meshes'; Recurse = $true }
+          )
+
+          foreach ($item in $copyMap) {
+            $destination = Join-Path $packRoot $item.Destination
+            if ($item.Recurse) {
+              Copy-Item -Path $item.Source -Destination $destination -Recurse -Force
+            } else {
+              Copy-Item -Path $item.Source -Destination $destination -Force
+            }
+          }
 
           $archivePath = Join-Path $releaseDir "$artifactName.zip"
-          if (Test-Path $archivePath) {
-            Remove-Item -Path $archivePath -Force
-          }
+          Remove-Item -Path $archivePath -Force -ErrorAction SilentlyContinue
           Compress-Archive -Path (Join-Path $packRoot '*') -DestinationPath $archivePath -Force
 
           "artifact_name=$artifactName" >> $env:GITHUB_OUTPUT
