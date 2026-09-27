@@ -76,5 +76,3 @@ struct std::formatter<RE::BSFixedString> : std::formatter<const char*>
         return std::formatter<const char*>::format(myStr.data(), ctx);
     }
 };
-
-#define DLLEXPORT __declspec(dllexport)

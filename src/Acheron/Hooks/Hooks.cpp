@@ -52,7 +52,6 @@ namespace Acheron
         ProcessHitData_Patch _ProcessHitData(phd.address() + 8);
         _ProcessHitData.ready();
 
-        SKSE::AllocTrampoline((static_cast<size_t>(1) << 7) + _ProcessHitData.getSize());
         auto& trampoline = SKSE::GetTrampoline();
         // ==================================================
         auto patchDst = trampoline.allocate(_ProcessHitData);

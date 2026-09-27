@@ -5,6 +5,8 @@ namespace Acheron
     class Hooks
     {
       public:
+        static constexpr size_t TrampolineSize = (static_cast<std::size_t>(1) << 7) + 0x40;
+
         static void Install();
 
       private:

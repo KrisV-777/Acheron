@@ -1,4 +1,4 @@
-set_xmakever("2.9.5")
+set_xmakever("3.1.1")
 
 -- Globals
 PROJECT_NAME = "Acheron"
@@ -83,6 +83,8 @@ option("rex_json")
     set_showmenu(false)
 option("rex_toml")
     set_showmenu(false)
+option("skse_patch_safety")
+    set_showmenu(false)
 option("skse_xbyak")
     set_showmenu(false)
 option("tests")
@@ -93,7 +95,7 @@ option_end()
 -- https://github.com/xmake-io/xmake-repo/tree/dev
 add_requires("yaml-cpp", "magic_enum", "nlohmann_json", "simpleini")
 
-includes("lib/CommonLibVR/xmake.lua")
+includes("lib/CommonLibSSE-NG/xmake.lua")
 set_config("skyrim_se", true)
 set_config("skyrim_ae", true)
 set_config("skyrim_vr", true)
@@ -113,6 +115,7 @@ elseif is_mode("release") then
     set_optimize("fastest")
     set_symbols("debug")
 end
+add_defines("NOMINMAX")
 
 set_config("skse_xbyak", true)
 
