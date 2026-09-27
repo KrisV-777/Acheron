@@ -275,6 +275,7 @@ jobs:
 
           @(
             'Scripts'
+            'Interface'
             'Source/Scripts'
             'SKSE/Plugins'
             'SKSE/CustomConsole'
@@ -289,11 +290,11 @@ jobs:
             @{ Source = 'artifacts/built-esm/Acheron.esm'; Destination = 'Acheron.esm'; Recurse = $false }
             @{ Source = 'artifacts/built-dll/*'; Destination = 'SKSE/Plugins'; Recurse = $true }
             # Static dist assets (committed to repo)
-            @{ Source = 'dist/Interface'; Destination = 'Interface'; Recurse = $true }
+            @{ Source = 'dist/Interface/*'; Destination = 'Interface'; Recurse = $true }
             @{ Source = 'dist/Source/Scripts/*'; Destination = 'Source/Scripts'; Recurse = $true }
             @{ Source = 'dist/SKSE/Acheron/*'; Destination = 'SKSE/Acheron'; Recurse = $true }
             @{ Source = 'dist/SKSE/CustomConsole/*'; Destination = 'SKSE/CustomConsole'; Recurse = $true }
-            @{ Source = 'dist/meshes'; Destination = 'meshes'; Recurse = $true }
+            @{ Source = 'dist/meshes/*'; Destination = 'meshes'; Recurse = $true }
           )
 
           foreach ($item in $copyMap) {
